@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aidan's Builder Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:13px;}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e3;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{width:36px;height:36px;background:#1a3a6b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+.brand-name{font-size:16px;font-weight:600;color:#1a1a1a;}
+.brand-sub{font-size:11px;color:#888;}
+.sync-indicator{font-size:11px;color:#888;display:flex;align-items:center;gap:5px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;}
+.sync-dot.ok{background:#3B6D11;}
+.sync-dot.saving{background:#BA7517;animation:pulse 1s infinite;}
+.sync-dot.error{background:#A32D2D;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.main{padding:16px 20px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:12px 16px;}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px;}
+.stat-val{font-size:24px;font-weight:600;color:#1a1a1a;}
+.tab-row{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e5e3;padding-bottom:0;}
+.tab{font-size:12px;padding:7px 14px;border:none;background:none;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:5px;}
+.tab:hover{color:#1a1a1a;}
+.tab.active{color:#1a3a6b;border-bottom-color:#1a3a6b;font-weight:500;}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #f0f0ee;}
+.filters input,.filters select{font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;outline:none;}
+.filters input{flex:1;min-width:140px;}
+.filters input:focus,.filters select:focus{border-color:#1a3a6b;}
+.edit-hint{font-size:11px;color:#888;padding:8px 16px;background:#fafaf8;border-bottom:1px solid #f0f0ee;display:flex;align-items:center;gap:5px;}
+.scroll-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+th{text-align:left;font-weight:500;font-size:11px;color:#888;border-bottom:1px solid #e5e5e3;padding:8px 10px;background:#fafaf8;white-space:nowrap;}
+th.th-email{background:#fdf8f0;}
+th.th-li{background:#f0f4fb;}
+td{padding:8px 10px;border-bottom:1px solid #f0f0ee;vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafaf8;}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.badge-lux{background:#E6F1FB;color:#0C447C;}
+.badge-vol{background:#EEEDFE;color:#3C3489;}
+.ei{font-size:11px;border:1px solid transparent;border-radius:5px;padding:2px 5px;background:transparent;color:#1a1a1a;width:100%;font-family:inherit;}
+.ei:hover{border-color:#e0e0de;background:#fff;}
+.ei:focus{border-color:#1a3a6b;background:#fff;outline:none;}
+.ei::placeholder{color:#bbb;}
+.fsel{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;}
+.fsel:focus{border-color:#1a3a6b;}
+.outreach-cell{display:flex;flex-direction:column;gap:4px;}
+.outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;font-family:inherit;}
+.outreach-date:focus{border-color:#1a3a6b;}
+.outreach-note{font-size:11px;border:1px solid transparent;border-radius:5px;padding:2px 5px;background:transparent;color:#1a1a1a;width:100%;font-family:inherit;resize:none;}
+.outreach-note:hover{border-color:#e0e0de;background:#fff;}
+.outreach-note:focus{border-color:#1a3a6b;background:#fff;outline:none;}
+.outreach-note::placeholder{color:#bbb;}
+.outreach-sent{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:2px;}
+.email-sent{background:#faeeda;color:#633806;}
+.li-sent{background:#E6F1FB;color:#0C447C;}
+.add-contact-btn{font-size:11px;color:#1a3a6b;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
+.add-contact-btn:hover{text-decoration:underline;}
+.contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
+.contact-row:last-of-type{border-bottom:none;margin-bottom:0;}
+.del-btn{position:absolute;top:0;right:0;background:none;border:none;cursor:pointer;color:#ccc;font-size:15px;line-height:1;padding:0;}
+.del-btn:hover{color:#A32D2D;}
+.rep-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500;margin-bottom:4px;}
+.btn{font-size:12px;padding:7px 14px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;}
+.btn:hover{background:#f5f5f3;}
+.btn-primary{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
+.btn-primary:hover{background:#163060;}
+.log-entry{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f3;}
+.log-entry:last-child{border-bottom:none;}
+.log-time{font-size:11px;color:#aaa;white-space:nowrap;min-width:52px;padding-top:1px;}
+.log-text{font-size:12px;color:#1a1a1a;line-height:1.5;}
+.log-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:5px;font-weight:500;}
+.lb-none{background:#F1EFE8;color:#5F5E5A;}
+.lb-contacted{background:#FAEEDA;color:#633806;}
+.lb-visited{background:#E6F1FB;color:#0C447C;}
+.lb-meeting{background:#E1F5EE;color:#085041;}
+.lb-approved{background:#EAF3DE;color:#27500A;}
+.day-group{margin-bottom:1.25rem;}
+.day-label{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #f0f0ee;}
+.empty{font-size:13px;color:#aaa;padding:2rem;text-align:center;}
+.rep-manager-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.rep-chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;padding:6px 12px;border-radius:99px;border:1px solid #e0e0de;}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;}
+.spinner{width:32px;height:32px;border:3px solid #e0e0de;border-top-color:#1a3a6b;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;font-size:12px;padding:10px 16px;border-radius:8px;z-index:9999;opacity:0;transition:opacity .3s;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:#888;">Loading builder data…</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">A</div>
+    <div>
+      <div class="brand-name">Aidan's Home Services</div>
+      <div class="brand-sub">Builder Outreach Tracker · Atlanta 2026</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="sync-indicator">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Connecting…</span>
+    </div>
+    <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+    <button class="btn btn-primary" onclick="switchTab('report')"><i class="ti ti-chart-bar"></i> Boss report</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total builders</div><div class="stat-val">33</div></div>
+    <div class="stat"><div class="stat-label">Not contacted</div><div class="stat-val" id="s-none">—</div></div>
+    <div class="stat"><div class="stat-label">In progress</div><div class="stat-val" id="s-prog" style="color:#854F0B;">—</div></div>
+    <div class="stat"><div class="stat-label">Approved / meeting</div><div class="stat-val" id="s-done" style="color:#3B6D11;">—</div></div>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab active" id="tab-log" onclick="switchTab('log')"><i class="ti ti-list"></i> Visit log</button>
+    <button class="tab" id="tab-report" onclick="switchTab('report')"><i class="ti ti-clipboard"></i> Boss report</button>
+    <button class="tab" id="tab-reps" onclick="switchTab('reps')"><i class="ti ti-users"></i> Manage reps</button>
+  </div>
+
+  <div id="view-log">
+    <div class="card">
+      <div class="filters">
+        <input type="text" id="search" placeholder="Search builder, contact…" oninput="render()"/>
+        <select id="f-zone" onchange="render()">
+          <option value="">All zones</option>
+          <option>N. Alpharetta / Milton</option>
+          <option>N. Cumming / Forsyth</option>
+          <option>Northwest Marietta / Woodstock</option>
+          <option>Northeast Johns Creek</option>
+          <option>Central / ITP Buckhead</option>
+          <option>South / Newnan / Hoschton</option>
+          <option>East Gwinnett</option>
+        </select>
+        <select id="f-type" onchange="render()">
+          <option value="">All types</option>
+          <option value="Luxury">Luxury</option>
+          <option value="Volume">Volume</option>
+        </select>
+        <select id="f-status" onchange="render()">
+          <option value="">All statuses</option>
+          <option value="none">Not contacted</option>
+          <option value="contacted">Contacted</option>
+          <option value="visited">Site visited</option>
+          <option value="meeting">Meeting set</option>
+          <option value="approved">Approved vendor</option>
+        </select>
+        <select id="f-rep" onchange="render()">
+          <option value="">All reps</option>
+        </select>
+      </div>
+      <div class="edit-hint"><i class="ti ti-pencil" style="font-size:12px;"></i> Click any field to edit — all changes save live to the shared Google Sheet.</div>
+      <div class="scroll-wrap">
+        <table>
+          <colgroup>
+            <col style="width:22px">
+            <col style="width:110px">
+            <col style="width:90px">
+            <col style="width:170px">
+            <col style="width:130px">
+            <col style="width:42px">
+            <col style="width:110px">
+            <col style="width:115px">
+            <col style="width:118px">
+            <col style="width:98px">
+            <col style="width:82px">
+            <col style="width:138px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Builder</th>
+              <th>Zone</th>
+              <th>Contacts</th>
+              <th>Address / website</th>
+              <th>Lots</th>
+              <th>Assigned rep</th>
+              <th class="th-email"><i class="ti ti-mail" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Email outreach</th>
+              <th class="th-li"><i class="ti ti-brand-linkedin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>LinkedIn outreach</th>
+              <th>Status</th>
+              <th>Last visit</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-report" style="display:none;">
+    <div class="card" style="padding:20px;" id="report-content"></div>
+  </div>
+
+  <div id="view-reps" style="display:none;">
+    <div class="card" style="padding:20px;">
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px;">Sales reps</div>
+      <div class="rep-manager-grid" id="rep-list"></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="new-rep-name" placeholder="Full name…" onkeydown="if(event.key==='Enter')addRep()" maxlength="40" style="font-size:13px;padding:7px 12px;border-radius:7px;border:1px solid #e0e0de;flex:1;outline:none;font-family:inherit;"/>
+        <button class="btn btn-primary" onclick="addRep()"><i class="ti ti-plus"></i> Add rep</button>
+      </div>
+      <div style="font-size:11px;color:#aaa;margin-top:10px;">Removing a rep clears their assignments. David McLendon cannot be removed.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycby8gbUs3PPRFcwreJ2s5HwDgr65V2xbumY_mAq-m4Un0_QWeu7fMApB2Jjhd7cEYOxVBQ/exec';
+
+const DEFAULT_BUILDERS=[
+  {p:1,name:"Perry Custom Homes",type:"Luxury",zone:"N. Alpharetta / Milton",lots:22,contacts:[{name:"Christopher Perry",title:"Owner",phone:"(678) 662-6305",email:"",linkedin:"linkedin.com/in/christopher-perry-2b31ab169"}],address:"4080 McGinnis Ferry Rd, Suite 902, Alpharetta, GA 30005",website:"perrycustomhomes.com"},
+  {p:2,name:"Ashton Woods Homes",type:"Volume",zone:"N. Alpharetta / Milton",lots:1752,contacts:[{name:"SVP Purchasing",title:"Corporate purchasing",phone:"(770) 481-2000",email:"",linkedin:""},{name:"Construction Manager / Super",title:"On-site",phone:"",email:"",linkedin:""}],address:"3820 Mansell Rd, Suite 400, Alpharetta, GA 30022",website:"ashtonwoods.com"},
+  {p:3,name:"Arkan Homes LLC",type:"Luxury",zone:"N. Alpharetta / Milton",lots:19,contacts:[{name:"Owner / Principal",title:"Identify via LinkedIn",phone:"(404) 666-5688",email:"",linkedin:""}],address:"3275 North Point Pkwy, Suite 201, Alpharetta, GA 30005",website:"arkanhomes.com"},
+  {p:4,name:"Vertical Luxury",type:"Luxury",zone:"N. Alpharetta / Milton",lots:null,contacts:[{name:"Owner / Principal",title:"Via website contact form",phone:"",email:"",linkedin:""}],address:"Claxton site: Hopewell Rd near Bell Memorial Park, Milton, GA",website:"verticalluxury.com/contact"},
+  {p:5,name:"Green Brick / Trophy Signature",type:"Volume",zone:"N. Alpharetta / Milton",lots:451,contacts:[{name:"Atlanta Division Purchasing",title:"Corporate",phone:"",email:"",linkedin:""},{name:"Construction Manager",title:"On-site",phone:"",email:"",linkedin:""}],address:"Atlanta HQ — see greenbrickpartners.com",website:"greenbrickpartners.com"},
+  {p:6,name:"Fuqua & Associates",type:"Luxury",zone:"N. Alpharetta / Milton",lots:11,contacts:[{name:"Tommy Fuqua Jr.",title:"Owner / GC",phone:"(770) 475-1537",email:"",linkedin:"GAHBA-listed, attends events"}],address:"985 Canonero Dr, Alpharetta, GA 30004",website:""},
+  {p:7,name:"Whitestone Builders LLC",type:"Luxury",zone:"N. Alpharetta / Milton",lots:0,contacts:[{name:"Mason Meadows",title:"PM — gatekeeper to Jeff",phone:"",email:"",linkedin:""},{name:"Jeff Wertz",title:"Owner / GC",phone:"",email:"",linkedin:""}],address:"370 Concord St, Alpharetta, GA 30009",website:""},
+  {p:8,name:"Toll Brothers",type:"Volume",zone:"N. Cumming / Forsyth",lots:1836,contacts:[{name:"Atlanta Division Purchasing",title:"Trade Partner program",phone:"(888) 686-5542",email:"",linkedin:""}],address:"Crossing at Coal Mountain, Cumming, Forsyth County",website:"tollbrothers.com/georgia"},
+  {p:9,name:"Elevation Building Co LLC",type:"Luxury",zone:"N. Cumming / Forsyth",lots:19,contacts:[{name:"Eric Reidinger",title:"COO",phone:"",email:"info@elevationbuildingco.com",linkedin:""},{name:"Justin Mimbs",title:"CFO",phone:"",email:"info@elevationbuildingco.com",linkedin:""}],address:"4267 Pilgrim Mill Rd, Cumming, GA 30041",website:"elevationbuildingco.com"},
+  {p:10,name:"Tony Brown Custom Homes",type:"Luxury",zone:"N. Cumming / Forsyth",lots:1,contacts:[{name:"Tony Brown",title:"Owner / GC",phone:"",email:"",linkedin:""},{name:"Pete Brown",title:"Son — next-gen relationship",phone:"",email:"",linkedin:""}],address:"4360 N Industrial Dr, Suite 800, Cumming, GA 30041",website:"tonybrowncustomhomes.com"},
+  {p:11,name:"Cotton States Premier",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:38,contacts:[{name:"Owner / Principal",title:"Identify via LinkedIn",phone:"(770) 973-5685",email:"",linkedin:"Search: Cotton States Premier Properties Atlanta"}],address:"115 Village Centre West, Woodstock, GA 30188",website:"cspnewhomes.com"},
+  {p:12,name:"Pulte Homes",type:"Volume",zone:"Northwest Marietta / Woodstock",lots:1411,contacts:[{name:"Purchasing Manager",title:"Alpharetta division",phone:"(770) 887-6461",email:"",linkedin:""},{name:"Construction Manager",title:"On-site Woodstock",phone:"",email:"",linkedin:""}],address:"2475 Northwinds Pkwy, Alpharetta, GA 30009",website:"pulte.com"},
+  {p:13,name:"Traton Homes",type:"Volume",zone:"Northwest Marietta / Woodstock",lots:276,contacts:[{name:"Principal / Purchasing",title:"GAHBA member",phone:"",email:"",linkedin:"Find at GAHBA events"}],address:"Cherokee / Cobb / Paulding Counties",website:"tratonhomes.com"},
+  {p:14,name:"Patrick Malloy Communities",type:"Volume",zone:"Northwest Marietta / Woodstock",lots:113,contacts:[{name:"Owner / Principal",title:"Identify via LinkedIn",phone:"",email:"",linkedin:"Search: Patrick Malloy Communities"}],address:"Cherokee County / Canton / Forsyth",website:"patrickmalloy.com"},
+  {p:15,name:"Epic Homes LLC",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:null,contacts:[{name:"Joey Hipps",title:"Founder / President",phone:"",email:"",linkedin:"linkedin.com/in/joey-hipps-a3623815"}],address:"884 Madison Grove Lane, Marietta, GA 30064",website:"epichomesgeorgia.com"},
+  {p:16,name:"Navkar Builders LLC",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:5,contacts:[{name:"Owner / Principal",title:"Identify via LinkedIn",phone:"(678) 523-5997",email:"",linkedin:""}],address:"Marietta, GA 30062",website:"navkarusa.com"},
+  {p:17,name:"Treetop Residential",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:11,contacts:[{name:"Burke Jackson",title:"Founder & Owner",phone:"(770) 592-2404",email:"",linkedin:"GAHBA member"}],address:"5790 Holly Springs Pkwy, Woodstock, GA 30188",website:"treetopresidential.com"},
+  {p:18,name:"Spencer Love Homes LLC",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:0,contacts:[{name:"Chris Spencer",title:"Co-founder",phone:"(678) 918-4599",email:"",linkedin:"linkedin.com/in/chris-spencer-b25065165"},{name:"Eric Love",title:"Co-founder",phone:"",email:"",linkedin:"linkedin.com/in/eric-love-slh"}],address:"505 Hames Rd NW, Marietta, GA 30060",website:"spencerlovehomes.com"},
+  {p:19,name:"Loudermilk Homes",type:"Luxury",zone:"Northwest Marietta / Woodstock",lots:null,contacts:[{name:"Principal / Owner",title:"NAHB 2024 finalist",phone:"(770) 485-2600",email:"info@loudermilkhomes.com",linkedin:""}],address:"1827 Powers Ferry Rd SE, Bldg 6, Suite 300, Atlanta, GA 30339",website:"loudermilkhomes.com"},
+  {p:20,name:"The Providence Group",type:"Luxury",zone:"Northeast Johns Creek",lots:null,contacts:[{name:"Construction / Purchasing",title:"Single-family division",phone:"",email:"",linkedin:"Identify via theprovidencegroup.com"}],address:"Based in Johns Creek, GA",website:"theprovidencegroup.com"},
+  {p:21,name:"David Weekley Homes",type:"Volume",zone:"Northeast Johns Creek",lots:610,contacts:[{name:"Atlanta Division Purchasing",title:"Corporate",phone:"",email:"",linkedin:""},{name:"Construction Manager",title:"On-site",phone:"",email:"",linkedin:""}],address:"Metro Atlanta — see davidweekley.com",website:"davidweekley.com"},
+  {p:22,name:"Peachland Homes Inc",type:"Luxury",zone:"Northeast Johns Creek",lots:1,contacts:[{name:"Ty White",title:"Owner / Principal",phone:"(770) 844-9976",email:"info@peachlandhomes.com",linkedin:""}],address:"2494 Jett Ferry Rd, Suite 202, Dunwoody, GA 30338",website:"peachlandhomes.com"},
+  {p:23,name:"Crownline Homes",type:"Luxury",zone:"Northeast Johns Creek",lots:0,contacts:[{name:"Robert King",title:"President",phone:"(770) 858-5113",email:"",linkedin:""},{name:"Michael Sakoutis",title:"VP Construction / EarthCraft",phone:"",email:"",linkedin:""}],address:"10050 Medlock Bridge Rd, Suite 110, Johns Creek, GA 30097",website:"crownlinehomesga.com"},
+  {p:24,name:"Capital Design Group Inc",type:"Luxury",zone:"Northeast Johns Creek",lots:3,contacts:[{name:"Donnie Chapman",title:"Principal",phone:"(770) 642-8272",email:"",linkedin:""},{name:"Matt Stubblefield",title:"Principal",phone:"",email:"",linkedin:""}],address:"1235 Hightower Trail, Atlanta, GA 30350",website:"capitaldesignhomes.com"},
+  {p:25,name:"White Oak Signature Homes",type:"Luxury",zone:"Northeast Johns Creek",lots:0,contacts:[{name:"Finn Smith",title:"Founder",phone:"",email:"",linkedin:"Find at GAHBA or NAHB"}],address:"Peachtree Corners, GA",website:"whiteoaksignaturehomes.com"},
+  {p:26,name:"Kolter Homes",type:"Volume",zone:"Central / ITP Buckhead",lots:940,contacts:[{name:"Joe Hawkins",title:"Director of Sales / Purchasing",phone:"(470) 604-7302",email:"",linkedin:"linkedin.com/in/joe-hawkins-9252256"},{name:"Tony Adams",title:"Event contact — GAHBA/NAHB",phone:"",email:"",linkedin:""}],address:"107 West Paces Ferry Rd, Suite 200, Atlanta, GA 30305",website:"kolterhomes.com"},
+  {p:27,name:"Rockhaven Homes",type:"Volume",zone:"Central / ITP Buckhead",lots:738,contacts:[{name:"Leadership team",title:"Identify via theorg.com",phone:"(470) 645-0128",email:"",linkedin:""}],address:"4062 Peachtree Rd NE, Suite A277, Atlanta, GA 30319",website:"rockhavenga.com"},
+  {p:28,name:"Hedgewood Homes",type:"Luxury",zone:"Central / ITP Buckhead",lots:null,contacts:[{name:"Pam Sessions",title:"Co-Founder",phone:"",email:"",linkedin:"GAHBA member"},{name:"Don Donnelly",title:"Co-Founder",phone:"",email:"",linkedin:"GAHBA member"}],address:"2974 Hardman Ct NE, Atlanta, GA (Brookhaven)",website:"hedgewoodhomes.com"},
+  {p:29,name:"South Haven Build Partners",type:"Luxury",zone:"Central / ITP Buckhead",lots:5,contacts:[{name:"Principal",title:"Identify via LinkedIn",phone:"(404) 488-2431",email:"",linkedin:""}],address:"Atlanta, GA 30307",website:"southhavenbuilders.com"},
+  {p:30,name:"Bercher Homes LLC",type:"Volume",zone:"Central / ITP Buckhead",lots:52,contacts:[{name:"Owner / Principal",title:"Identify via LinkedIn",phone:"",email:"",linkedin:"Search: Bercher Homes Atlanta"}],address:"Metro Atlanta — see bercherhomes.com",website:"bercherhomes.com"},
+  {p:31,name:"PLH Homes LLC",type:"Luxury",zone:"Central / ITP Buckhead",lots:0,contacts:[{name:"Patrick Henderson",title:"Founder",phone:"(404) 391-9078",email:"",linkedin:"linkedin.com/in/patricklhenderson"}],address:"1619 Frazier Rd, Decatur, GA 30033",website:"plhhomes.com"},
+  {p:32,name:"D.R. Horton",type:"Volume",zone:"South / Newnan / Hoschton",lots:4804,contacts:[{name:"Atlanta Division Purchasing Manager",title:"Identify via drhorton.com",phone:"",email:"",linkedin:""}],address:"Atlanta Georgia Division — find at drhorton.com",website:"drhorton.com"},
+  {p:33,name:"Smith Douglas Homes",type:"Volume",zone:"South / Newnan / Hoschton",lots:1001,contacts:[{name:"Atlanta Division Purchasing Manager",title:"Corporate",phone:"",email:"",linkedin:""}],address:"~30 communities metro-wide — smithdouglas.com",website:"smithdouglas.com"},
+];
+
+const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"visited",label:"Site visited"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
+const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",visited:"Site visited",meeting:"Meeting set",approved:"Approved vendor"};
+const LB_CLASS={none:"lb-none",contacted:"lb-contacted",visited:"lb-visited",meeting:"lb-meeting",approved:"lb-approved"};
+const REP_COLORS=[{bg:"#E6F1FB",color:"#0C447C"},{bg:"#E1F5EE",color:"#085041"},{bg:"#EEEDFE",color:"#3C3489"},{bg:"#FAEEDA",color:"#633806"},{bg:"#FAECE7",color:"#712B13"},{bg:"#FBEAF0",color:"#72243E"},{bg:"#EAF3DE",color:"#27500A"},{bg:"#F1EFE8",color:"#444441"}];
+
+function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function repColor(i){return REP_COLORS[i%REP_COLORS.length];}
+function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+let builders=JSON.parse(JSON.stringify(DEFAULT_BUILDERS));
+let logs={};
+let activity=[];
+let reps=["David McLendon"];
+let saveQueue={};
+let saveTimer=null;
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
+  dot.className='sync-dot '+s;
+  lbl.textContent=s==='ok'?'Live — changes saved':s==='saving'?'Saving…':'Save error — check connection';
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+async function apiFetch(params){
+  const res=await fetch(SCRIPT_URL+'?'+new URLSearchParams(params));
+  return res.json();
+}
+async function apiPost(body){
+  const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(body)});
+  return res.json();
+}
+
+async function loadAll(){
+  try{
+    const data=await apiFetch({action:'getAll'});
+    if(data.error)throw new Error(data.error);
+    if(data.logs)Object.entries(data.logs).forEach(([k,v])=>{logs[k]=v;});
+    if(data.activity&&data.activity.length)activity=data.activity;
+    if(data.reps&&data.reps.length)reps=data.reps;
+    if(data.contacts){
+      Object.entries(data.contacts).forEach(([bid,contacts])=>{
+        const b=builders.find(x=>String(x.p)===String(bid));
+        if(b&&contacts&&contacts.filter(Boolean).length)b.contacts=contacts.filter(Boolean);
+      });
+    }
+    if(data.builderInfo){
+      Object.entries(data.builderInfo).forEach(([bid,info])=>{
+        const b=builders.find(x=>String(x.p)===String(bid));
+        if(b){if(info.name)b.name=info.name;if(info.address)b.address=info.address;if(info.website!==undefined)b.website=info.website;if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;}
+      });
+    }
+    setSyncStatus('ok');
+  }catch(e){
+    setSyncStatus('error');showToast('Could not connect — working offline');
+  }
+  document.getElementById('loading').style.display='none';
+  render();updateStats();populateRepFilter();
+}
+
+function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:''};return logs[p];}
+function getB(p){return builders.find(b=>b.p===p);}
+function nowStr(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function todayStr(){return new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+function todayKey(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+
+function queueSaveLog(p){
+  setSyncStatus('saving');clearTimeout(saveTimer);saveQueue[p]=true;
+  saveTimer=setTimeout(async()=>{
+    const ids=Object.keys(saveQueue);saveQueue={};
+    for(const id of ids){try{await apiPost({action:'saveLog',data:{builderId:id,...getLog(parseInt(id))}});}catch(e){}}
+    setSyncStatus('ok');
+  },800);
+}
+
+function addAct(builderName,field,newVal,rep){
+  const icons={status:'ti-arrow-right',date:'ti-calendar',notes:'ti-note',rep:'ti-user',contact:'ti-id-badge',address:'ti-map-pin',website:'ti-world',lots:'ti-hash',emailDate:'ti-mail',emailNote:'ti-mail',liDate:'ti-brand-linkedin',liNote:'ti-brand-linkedin'};
+  let msg='';
+  if(field==='status')msg=`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`;
+  else if(field==='date')msg=`Visit date set: <strong>${builderName}</strong> — ${newVal}`;
+  else if(field==='notes')msg=`Note: <strong>${builderName}</strong> — "${newVal}"`;
+  else if(field==='rep')msg=`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`;
+  else if(field==='emailDate')msg=`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`;
+  else if(field==='emailNote')msg=`Email note: <strong>${builderName}</strong> — "${newVal}"`;
+  else if(field==='liDate')msg=`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`;
+  else if(field==='liNote')msg=`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`;
+  else if(field==='address')msg=`Address updated: <strong>${builderName}</strong>`;
+  else if(field==='website')msg=`Website updated: <strong>${builderName}</strong> — ${newVal}`;
+  else msg=`Updated: <strong>${builderName}</strong>`;
+  const entry={ts:nowStr(),day:todayKey(),dayLabel:todayStr(),msg,field,status:field==='status'?newVal:null,builder:builderName,rep:rep||''};
+  activity.push(entry);
+  apiPost({action:'saveActivity',data:entry}).catch(()=>{});
+}
+
+function setStatus(p,v){const old=getLog(p).status;getLog(p).status=v;queueSaveLog(p);addAct(getB(p).name,'status',v,getLog(p).rep);}
+function setDate(p,v){getLog(p).date=v;queueSaveLog(p);addAct(getB(p).name,'date',v,getLog(p).rep);}
+function setNoteBlur(p,v){const old=getLog(p).notes||'';getLog(p).notes=v;queueSaveLog(p);if(v.trim()&&v.trim()!==old.trim())addAct(getB(p).name,'notes',v,getLog(p).rep);}
+function setRep(p,v){getLog(p).rep=v;queueSaveLog(p);addAct(getB(p).name,'rep',v,v);render();}
+
+function setEmailDate(p,v){getLog(p).emailDate=v;queueSaveLog(p);if(v)addAct(getB(p).name,'emailDate',v,getLog(p).rep);render();}
+function setEmailNoteBlur(p,v){const old=getLog(p).emailNote||'';getLog(p).emailNote=v;queueSaveLog(p);if(v.trim()&&v.trim()!==old.trim())addAct(getB(p).name,'emailNote',v,getLog(p).rep);}
+function setLiDate(p,v){getLog(p).liDate=v;queueSaveLog(p);if(v)addAct(getB(p).name,'liDate',v,getLog(p).rep);render();}
+function setLiNoteBlur(p,v){const old=getLog(p).liNote||'';getLog(p).liNote=v;queueSaveLog(p);if(v.trim()&&v.trim()!==old.trim())addAct(getB(p).name,'liNote',v,getLog(p).rep);}
+
+function setContactField(p,ci,field,v){
+  const b=getB(p);const old=b.contacts[ci][field]||'';b.contacts[ci][field]=v;
+  if(v.trim()!==old.trim())addAct(b.name,'contact',`${field}: ${v}`,getLog(p).rep);
+  setSyncStatus('saving');
+  apiPost({action:'saveContacts',data:{builderId:p,contacts:b.contacts}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+}
+function addContact(p){getB(p).contacts.push({name:'',title:'',phone:'',email:'',linkedin:''});render();setTimeout(()=>{const rows=document.querySelectorAll(`[data-cr="${p}"]`);if(rows.length){const inp=rows[rows.length-1].querySelector('input');if(inp)inp.focus();}},50);}
+function removeContact(p,ci){const b=getB(p);if(b.contacts.length<=1){showToast('At least one contact required.');return;}b.contacts.splice(ci,1);apiPost({action:'saveContacts',data:{builderId:p,contacts:b.contacts}}).catch(()=>{});render();}
+function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
+
+function updateStats(){
+  document.getElementById('s-none').textContent=builders.filter(b=>getLog(b.p).status==='none').length;
+  document.getElementById('s-prog').textContent=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  document.getElementById('s-done').textContent=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
+}
+
+function populateRepFilter(){
+  const sel=document.getElementById('f-rep');const cur=sel.value;
+  sel.innerHTML='<option value="">All reps</option><option value="__none__">Unassigned</option>'+reps.map(r=>`<option value="${r}"${cur===r?' selected':''}>${r}</option>`).join('');
+}
+
+function repPill(rep){
+  const idx=reps.indexOf(rep);const c=repColor(idx);
+  return`<span class="rep-pill" style="background:${c.bg};color:${c.color};"><span style="width:14px;height:14px;border-radius:50%;background:${c.color};color:${c.bg};display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;">${initials(rep)}</span>${rep.split(' ')[0]}</span>`;
+}
+
+function renderContactsCell(b){
+  let html='';
+  b.contacts.forEach((c,ci)=>{
+    html+=`<div class="contact-row" data-cr="${b.p}">
+      <button class="del-btn" onclick="removeContact(${b.p},${ci})">×</button>
+      <input class="ei" value="${esc(c.name)}" placeholder="Full name" onblur="setContactField(${b.p},${ci},'name',this.value)" style="font-weight:600;"/>
+      <input class="ei" value="${esc(c.title)}" placeholder="Title / role" onblur="setContactField(${b.p},${ci},'title',this.value)" style="color:#888;"/>
+      <input class="ei" value="${esc(c.phone)}" placeholder="Phone" onblur="setContactField(${b.p},${ci},'phone',this.value)"/>
+      <input class="ei" value="${esc(c.email)}" placeholder="Email" onblur="setContactField(${b.p},${ci},'email',this.value)"/>
+      <input class="ei" value="${esc(c.linkedin)}" placeholder="LinkedIn / note" onblur="setContactField(${b.p},${ci},'linkedin',this.value)"/>
+    </div>`;
+  });
+  html+=`<button class="add-contact-btn" onclick="addContact(${b.p})"><i class="ti ti-plus" style="font-size:11px;"></i> Add contact</button>`;
+  return html;
+}
+
+function renderOutreachCell(p,type){
+  const log=getLog(p);
+  const dateVal=type==='email'?log.emailDate:log.liDate;
+  const noteVal=type==='email'?log.emailNote:log.liNote;
+  const sentClass=type==='email'?'email-sent':'li-sent';
+  const sentLabel=type==='email'?'Email sent':'Connected';
+  const dateId=type==='email'?`ed-${p}`:`ld-${p}`;
+  const onDateChange=type==='email'?`setEmailDate(${p},this.value)`:`setLiDate(${p},this.value)`;
+  const onNoteBlur=type==='email'?`setEmailNoteBlur(${p},this.value)`:`setLiNoteBlur(${p},this.value)`;
+  const bgStyle=type==='email'?'background:#fffdf7;':'background:#f7faff;';
+  return`<div class="outreach-cell" style="${bgStyle}padding:3px;">
+    ${dateVal?`<span class="outreach-sent ${sentClass}">${sentLabel} ${dateVal}</span>`:''}
+    <input type="date" class="outreach-date" id="${dateId}" value="${dateVal||''}" onchange="${onDateChange}" title="Date of outreach"/>
+    <textarea class="outreach-note" rows="2" placeholder="What happened / follow-up…" onblur="${onNoteBlur}">${esc(noteVal)}</textarea>
+  </div>`;
+}
+
+function render(){
+  const search=document.getElementById('search').value.toLowerCase();
+  const fz=document.getElementById('f-zone').value;
+  const ft=document.getElementById('f-type').value;
+  const fs=document.getElementById('f-status').value;
+  const fr=document.getElementById('f-rep').value;
+  const filtered=builders.filter(b=>{
+    const log=getLog(b.p);
+    if(fz&&b.zone!==fz)return false;
+    if(ft&&b.type!==ft)return false;
+    if(fs&&log.status!==fs)return false;
+    if(fr==='__none__'&&log.rep)return false;
+    if(fr&&fr!=='__none__'&&log.rep!==fr)return false;
+    if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
+    return true;
+  });
+  const log_=p=>getLog(p);
+  document.getElementById('tbody').innerHTML=filtered.map(b=>{
+    const log=log_(b.p);
+    const statOpts=STATUS_OPTS.map(o=>`<option value="${o.val}"${log.status===o.val?' selected':''}>${o.label}</option>`).join('');
+    const repOpts=`<option value="">— Unassigned —</option>`+reps.map((r,ri)=>`<option value="${r}"${log.rep===r?' selected':''}>${r}</option>`).join('');
+    return`<tr>
+      <td style="color:#aaa;font-size:11px;">${b.p}</td>
+      <td>
+        <input class="ei" value="${esc(b.name)}" placeholder="Builder name" onblur="setBuilderInfo(${b.p},'name',this.value)" style="font-weight:600;font-size:12px;"/>
+        <span class="badge ${b.type==='Luxury'?'badge-lux':'badge-vol'}" style="margin-top:3px;display:inline-block;">${b.type}</span>
+      </td>
+      <td style="font-size:11px;color:#888;">${b.zone}</td>
+      <td>${renderContactsCell(b)}</td>
+      <td>
+        <input class="ei" value="${esc(b.address)}" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" style="margin-bottom:3px;"/>
+        <input class="ei" value="${esc(b.website)}" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" style="color:#1a3a6b;"/>
+      </td>
+      <td><input class="ei" type="number" value="${b.lots===null?'':b.lots}" placeholder="—" onblur="setBuilderInfo(${b.p},'lots',this.value)" style="text-align:right;"/></td>
+      <td>
+        ${log.rep?repPill(log.rep):'<span style="font-size:11px;color:#bbb;">— unassigned —</span>'}
+        <select class="fsel" style="margin-top:4px;" onchange="setRep(${b.p},this.value)">${repOpts}</select>
+      </td>
+      <td style="padding:4px 6px;">${renderOutreachCell(b.p,'email')}</td>
+      <td style="padding:4px 6px;">${renderOutreachCell(b.p,'li')}</td>
+      <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select></td>
+      <td><input type="date" class="fsel" value="${log.date||''}" onchange="setDate(${b.p},this.value)"/></td>
+      <td><input type="text" class="ei" placeholder="Add note…" value="${esc(log.notes)}" onblur="setNoteBlur(${b.p},this.value)"/></td>
+    </tr>`;
+  }).join('');
+  updateStats();
+}
+
+function renderRepManager(){
+  document.getElementById('rep-list').innerHTML=reps.map((r,i)=>{
+    const c=repColor(i);const cnt=builders.filter(b=>getLog(b.p).rep===r).length;
+    return`<div class="rep-chip" style="background:${c.bg};border-color:${c.color}40;">
+      <span style="width:24px;height:24px;border-radius:50%;background:${c.color};color:${c.bg};display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">${initials(r)}</span>
+      <span style="font-weight:600;color:${c.color};">${r}</span>
+      <span style="font-size:11px;color:${c.color};opacity:.7;">${cnt} builder${cnt!==1?'s':''}</span>
+      ${i===0?'':`<button onclick="removeRep(${i})" style="background:none;border:none;cursor:pointer;color:${c.color};opacity:.5;font-size:16px;padding:0;margin-left:2px;">×</button>`}
+    </div>`;
+  }).join('');
+}
+
+function addRep(){const inp=document.getElementById('new-rep-name');const name=inp.value.trim();if(!name||reps.includes(name)){showToast('Name already exists or empty.');return;}reps.push(name);inp.value='';apiPost({action:'saveReps',data:reps}).catch(()=>{});renderRepManager();populateRepFilter();render();showToast(`${name} added.`);}
+function removeRep(idx){const name=reps[idx];if(!confirm(`Remove ${name}?`))return;builders.forEach(b=>{if(getLog(b.p).rep===name){getLog(b.p).rep='';queueSaveLog(b.p);}});reps.splice(idx,1);apiPost({action:'saveReps',data:reps}).catch(()=>{});renderRepManager();populateRepFilter();render();}
+
+function renderReport(){
+  const el=document.getElementById('report-content');
+  if(!activity.length){el.innerHTML=`<div class="empty"><i class="ti ti-clipboard" style="font-size:28px;display:block;margin-bottom:8px;color:#ccc;"></i>No activity logged yet.</div>`;return;}
+  const grouped={};activity.forEach(a=>{if(!grouped[a.day])grouped[a.day]={label:a.dayLabel,entries:[]};grouped[a.day].entries.push(a);});
+  const days=Object.keys(grouped).sort().reverse();
+  const todayCount=(grouped[todayKey()]||{entries:[]}).entries.length;
+  const touched=new Set(activity.map(a=>a.builder)).size;
+  const none=builders.filter(b=>getLog(b.p).status==='none').length;
+  const prog=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  const done=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
+  const emailSent=builders.filter(b=>getLog(b.p).emailDate).length;
+  const liSent=builders.filter(b=>getLog(b.p).liDate).length;
+
+  let repSection='';
+  if(reps.length){
+    repSection=`<div style="background:#fafaf8;border:1px solid #e5e5e3;border-radius:8px;padding:12px 16px;margin-bottom:16px;"><div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Rep breakdown</div><div style="display:flex;flex-wrap:wrap;gap:12px;">`;
+    reps.forEach((r,ri)=>{const c=repColor(ri);const cnt=builders.filter(b=>getLog(b.p).rep===r).length;const meet=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).status==='meeting').length;const approv=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).status==='approved').length;const em=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).emailDate).length;const li=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).liDate).length;repSection+=`<div style="display:flex;align-items:center;gap:7px;font-size:12px;"><span style="width:22px;height:22px;border-radius:50%;background:${c.color};color:${c.bg};display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">${initials(r)}</span><span style="font-weight:600;">${r}</span><span style="color:#888;">${cnt} assigned · ${em} emailed · ${li} LinkedIn · ${meet} meeting · ${approv} approved</span></div>`;});
+    repSection+=`</div></div>`;
+  }
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+    <div><div style="font-size:16px;font-weight:600;">Activity report</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">${activity.length} actions · ${touched} builders touched · ${todayCount} today · ${none} untouched / ${prog} in progress / ${done} done · ${emailSent} emailed · ${liSent} LinkedIn</div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="copyReport()"><i class="ti ti-copy"></i> Copy for boss</button>
+      <button class="btn" onclick="confirmClear()" style="color:#A32D2D;border-color:#F09595;">Clear log</button>
+    </div>
+  </div>${repSection}`;
+
+  days.forEach(day=>{
+    const g=grouped[day];html+=`<div class="day-group"><div class="day-label">${g.label}</div>`;
+    g.entries.slice().reverse().forEach(a=>{
+      const iconMap={status:'ti-arrow-right',date:'ti-calendar',notes:'ti-note',rep:'ti-user',contact:'ti-id-badge',address:'ti-map-pin',website:'ti-world',emailDate:'ti-mail',emailNote:'ti-mail',liDate:'ti-brand-linkedin',liNote:'ti-brand-linkedin'};
+      const icon=iconMap[a.field]||'ti-pencil';
+      const repTag=a.rep?`<span style="font-size:10px;color:#aaa;margin-left:8px;">via ${a.rep}</span>`:'';
+      html+=`<div class="log-entry"><div class="log-time">${a.ts}</div><div class="log-text"><i class="ti ${icon}" style="font-size:11px;margin-right:4px;color:#aaa;"></i>${a.msg}${a.status?`<span class="log-badge ${LB_CLASS[a.status]}">${STATUS_LABEL[a.status]}</span>`:''}${repTag}</div></div>`;
+    });
+    html+=`</div>`;
+  });
+  el.innerHTML=html;
+}
+
+function copyReport(){
+  const grouped={};activity.forEach(a=>{if(!grouped[a.day])grouped[a.day]={label:a.dayLabel,entries:[]};grouped[a.day].entries.push(a);});
+  const days=Object.keys(grouped).sort().reverse();
+  const todayCount=(grouped[todayKey()]||{entries:[]}).entries.length;
+  const none=builders.filter(b=>getLog(b.p).status==='none').length;
+  const prog=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  const done=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
+  const emailSent=builders.filter(b=>getLog(b.p).emailDate).length;
+  const liSent=builders.filter(b=>getLog(b.p).liDate).length;
+  let txt=`AIDAN'S HOME SERVICES — BUILDER OUTREACH REPORT\nGenerated: ${new Date().toLocaleString()}\n\nPIPELINE SUMMARY\nNot contacted: ${none}  |  In progress: ${prog}  |  Done: ${done}\nEmails sent: ${emailSent}  |  LinkedIn outreach: ${liSent}\nTotal actions: ${activity.length}  |  Today: ${todayCount}\n\n`;
+  if(reps.length){txt+=`REP BREAKDOWN\n`;reps.forEach(r=>{const cnt=builders.filter(b=>getLog(b.p).rep===r).length;const meet=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).status==='meeting').length;const approv=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).status==='approved').length;const em=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).emailDate).length;const li=builders.filter(b=>getLog(b.p).rep===r&&getLog(b.p).liDate).length;txt+=`  ${r}: ${cnt} assigned, ${em} emailed, ${li} LinkedIn, ${meet} meeting, ${approv} approved\n`;});txt+=`\n`;}
+  days.forEach(day=>{const g=grouped[day];txt+=`--- ${g.label} ---\n`;g.entries.slice().reverse().forEach(a=>{txt+=`  ${a.ts}  ${a.msg.replace(/<[^>]+>/g,'')}${a.rep?' ('+a.rep+')':''}\n`;});txt+=`\n`;});
+  navigator.clipboard.writeText(txt).then(()=>showToast('Report copied!')).catch(()=>alert('Copy failed.'));
+}
+
+function confirmClear(){if(!confirm('Clear the entire activity log?'))return;activity=[];apiPost({action:'saveActivity',data:{_clear:true}}).catch(()=>{});renderReport();}
+
+function exportCSV(){
+  const rows=[['#','Builder','Type','Zone','Contact name','Title','Phone','Email','LinkedIn','Address','Website','Lots','Assigned rep','Email outreach date','Email note','LinkedIn outreach date','LinkedIn note','Status','Last visit','Notes']];
+  builders.forEach(b=>{const log=getLog(b.p);b.contacts.forEach((c,ci)=>{rows.push([ci===0?b.p:'',ci===0?b.name:'',ci===0?b.type:'',ci===0?b.zone:'',c.name,c.title,c.phone,c.email,c.linkedin,ci===0?b.address:'',ci===0?b.website:'',ci===0?(b.lots===null?'':b.lots):'',ci===0?(log.rep||''):'',ci===0?(log.emailDate||''):'',ci===0?(log.emailNote||''):'',ci===0?(log.liDate||''):'',ci===0?(log.liNote||''):'',ci===0?(STATUS_LABEL[log.status]||''):'',ci===0?(log.date||''):'',ci===0?(log.notes||''):'' ]);});});
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='aidan_builder_visits.csv';a.click();
+}
+
+function switchTab(tab){
+  ['log','report','reps'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'':'none';document.getElementById('tab-'+t).className='tab'+(t===tab?' active':'');});
+  if(tab==='report')renderReport();
+  if(tab==='reps')renderRepManager();
+}
+
+loadAll();
+</script>
+</body>
+</html>
