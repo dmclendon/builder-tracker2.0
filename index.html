@@ -34,9 +34,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .filters input{flex:1;min-width:140px;}
 .filters input:focus,.filters select:focus{border-color:#1a3a6b;}
 .edit-hint{font-size:11px;color:#888;padding:8px 16px;background:#fafaf8;border-bottom:1px solid #f0f0ee;display:flex;align-items:center;gap:5px;}
-.scroll-wrap{overflow-x:auto;}
+.scroll-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);}
+.col-freeze-1{position:sticky;left:0;z-index:6;background:#fff;}
+.col-freeze-2{position:sticky;left:28px;z-index:6;background:#fff;box-shadow:2px 0 5px rgba(0,0,0,.06);}
+th.col-freeze-1{background:#fafaf8;z-index:15;}
+th.col-freeze-2{background:#fafaf8;z-index:15;}
+tr:hover td.col-freeze-1,tr:hover td.col-freeze-2{background:#fafaf8;}
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
-th{text-align:left;font-weight:500;font-size:11px;color:#888;border-bottom:1px solid #e5e5e3;padding:8px 10px;background:#fafaf8;white-space:nowrap;}
+th{text-align:left;font-weight:500;font-size:11px;color:#888;border-bottom:1px solid #e5e5e3;padding:8px 10px;background:#fafaf8;white-space:nowrap;position:sticky;top:0;z-index:10;}
 th.th-email{background:#fdf8f0;}
 th.th-li{background:#f0f4fb;}
 td{padding:8px 10px;border-bottom:1px solid #f0f0ee;vertical-align:top;}
@@ -51,12 +56,9 @@ tr:hover td{background:#fafaf8;}
 .ei::placeholder{color:#bbb;}
 .fsel{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;}
 .fsel:focus{border-color:#1a3a6b;}
-.outreach-cell{display:flex;flex-direction:column;gap:4px;}
-.outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;font-family:inherit;}
-.outreach-date:focus{border-color:#1a3a6b;}
-.outreach-sent{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:2px;}
-.email-sent{background:#faeeda;color:#633806;}
-.li-sent{background:#E6F1FB;color:#0C447C;}
+.outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 6px;background:#fafaf8;color:#888;width:100%;outline:none;font-family:inherit;margin-top:4px;}
+.outreach-date:focus{border-color:#1a3a6b;background:#fff;color:#1a1a1a;}
+.note-sent-label{font-weight:600;color:#1a1a1a;}
 .add-contact-btn{font-size:11px;color:#1a3a6b;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
 .add-contact-btn:hover{text-decoration:underline;}
 .contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
@@ -91,10 +93,13 @@ tr:hover td{background:#fafaf8;}
 
 /* ── Log-style notes ── */
 .notes-log{display:flex;flex-direction:column;gap:0;width:100%;}
-.note-entry{display:flex;flex-direction:column;gap:1px;padding:5px 0;border-bottom:1px solid #f0f0ee;width:100%;}
+.note-entry{display:flex;flex-direction:row;align-items:flex-start;gap:4px;padding:5px 0;border-bottom:1px solid #f0f0ee;width:100%;}
 .note-entry:last-of-type{border-bottom:none;}
+.note-body{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
 .note-ts{font-size:10px;color:#bbb;line-height:1.3;letter-spacing:0.01em;}
 .note-text{font-size:12px;color:#1a1a1a;line-height:1.45;word-break:break-word;width:100%;}
+.note-del{background:none;border:none;cursor:pointer;color:#ddd;font-size:14px;padding:0;line-height:1;flex-shrink:0;margin-top:1px;}
+.note-del:hover{color:#A32D2D;}
 .note-add{margin-top:5px;width:100%;}
 .note-add input{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:5px 8px;width:100%;background:#fafaf8;outline:none;font-family:inherit;color:#1a1a1a;}
 .note-add input:focus{border-color:#1a3a6b;background:#fff;}
@@ -111,11 +116,8 @@ tr:hover td{background:#fafaf8;}
 
 <div class="topbar">
   <div class="brand">
-    <div class="brand-logo">A</div>
-    <div>
-      <div class="brand-name">Aidan's Home Services</div>
-      <div class="brand-sub">Builder Outreach Tracker · Atlanta 2026</div>
-    </div>
+    <img src="./logo.jpg" alt="Aidan's Home Services" style="height:42px;width:auto;object-fit:contain;"/>
+    <div class="brand-sub" style="margin-left:4px;">Builder Outreach Tracker · Atlanta 2026</div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div class="sync-indicator">
@@ -177,32 +179,42 @@ tr:hover td{background:#fafaf8;}
         <table>
           <colgroup>
             <col style="width:28px">
-            <col style="width:150px">
+            <col style="width:210px">
             <col style="width:110px">
             <col style="width:210px">
-            <col style="width:170px">
-            <col style="width:50px">
+            <col style="width:210px">
+            <col style="width:120px">
+            <col style="width:155px">
+            <col style="width:125px">
             <col style="width:130px">
+            <col style="width:200px">
             <col style="width:200px">
             <col style="width:200px">
             <col style="width:120px">
             <col style="width:100px">
+            <col style="width:260px">
+            <col style="width:260px">
             <col style="width:220px">
           </colgroup>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Builder</th>
+              <th class="col-freeze-1">#</th>
+              <th class="col-freeze-2">Builder</th>
               <th>Zone</th>
               <th>Contacts</th>
               <th>Address / website</th>
-              <th>Lots</th>
+              <th>Vacant Dev. Lots</th>
+              <th>Closing Price (Avg)</th>
+              <th>Living Sq Ft (Avg)</th>
               <th>Assigned rep</th>
               <th class="th-email"><i class="ti ti-mail" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Email outreach</th>
               <th class="th-li"><i class="ti ti-brand-linkedin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>LinkedIn outreach</th>
+              <th><i class="ti ti-map-pin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Site visits</th>
               <th>Status</th>
-              <th>Last visit</th>
-              <th>Notes</th>
+              <th>Last activity</th>
+              <th>Angle</th>
+              <th>Action</th>
+              <th>General notes</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -257,7 +269,7 @@ const DEFAULT_BUILDERS=[
   {p:23,name:"Crownline Homes",type:"Luxury",zone:"Northeast Johns Creek",lots:0,contacts:[{name:"Robert King",title:"President",phone:"(770) 858-5113",email:"",linkedin:""},{name:"Michael Sakoutis",title:"VP Construction / EarthCraft",phone:"",email:"",linkedin:""}],address:"10050 Medlock Bridge Rd, Suite 110, Johns Creek, GA 30097",website:"crownlinehomesga.com"},
   {p:24,name:"Capital Design Group Inc",type:"Luxury",zone:"Northeast Johns Creek",lots:3,contacts:[{name:"Donnie Chapman",title:"Principal",phone:"(770) 642-8272",email:"",linkedin:""},{name:"Matt Stubblefield",title:"Principal",phone:"",email:"",linkedin:""}],address:"1235 Hightower Trail, Atlanta, GA 30350",website:"capitaldesignhomes.com"},
   {p:25,name:"White Oak Signature Homes",type:"Luxury",zone:"Northeast Johns Creek",lots:0,contacts:[{name:"Finn Smith",title:"Founder",phone:"",email:"",linkedin:"Find at GAHBA or NAHB"}],address:"Peachtree Corners, GA",website:"whiteoaksignaturehomes.com"},
-  {p:26,name:"Kolter Homes",type:"Volume",zone:"Central / ITP Buckhead",lots:940,contacts:[{name:"Joe Hawkins",title:"Director of Sales / Purchasing",phone:"(470) 604-7302",email:"",linkedin:"linkedin.com/in/joe-hawkins-9252256"},{name:"Tony Adams",title:"Event contact — GAHBA/NAHB",phone:"",email:"",linkedin:""}],address:"107 West Paces Ferry Rd, Suite 200, Atlanta, GA 30305",website:"kolterhomes.com"},
+  {p:26,name:"Kolter Homes",type:"Volume",zone:"Central / ITP Buckhead",lots:155,contacts:[{name:"Joe Hawkins",title:"Director of Sales / Purchasing",phone:"(470) 604-7302",email:"",linkedin:"linkedin.com/in/joe-hawkins-9252256"},{name:"Tony Adams",title:"Event contact — GAHBA/NAHB",phone:"",email:"",linkedin:""}],address:"107 West Paces Ferry Rd, Suite 200, Atlanta, GA 30305",website:"kolterhomes.com"},
   {p:27,name:"Rockhaven Homes",type:"Volume",zone:"Central / ITP Buckhead",lots:738,contacts:[{name:"Leadership team",title:"Identify via theorg.com",phone:"(470) 645-0128",email:"",linkedin:""}],address:"4062 Peachtree Rd NE, Suite A277, Atlanta, GA 30319",website:"rockhavenga.com"},
   {p:28,name:"Hedgewood Homes",type:"Luxury",zone:"Central / ITP Buckhead",lots:null,contacts:[{name:"Pam Sessions",title:"Co-Founder",phone:"",email:"",linkedin:"GAHBA member"},{name:"Don Donnelly",title:"Co-Founder",phone:"",email:"",linkedin:"GAHBA member"}],address:"2974 Hardman Ct NE, Atlanta, GA (Brookhaven)",website:"hedgewoodhomes.com"},
   {p:29,name:"South Haven Build Partners",type:"Luxury",zone:"Central / ITP Buckhead",lots:5,contacts:[{name:"Principal",title:"Identify via LinkedIn",phone:"(404) 488-2431",email:"",linkedin:""}],address:"Atlanta, GA 30307",website:"southhavenbuilders.com"},
@@ -266,6 +278,84 @@ const DEFAULT_BUILDERS=[
   {p:32,name:"D.R. Horton",type:"Volume",zone:"South / Newnan / Hoschton",lots:4804,contacts:[{name:"Atlanta Division Purchasing Manager",title:"Identify via drhorton.com",phone:"",email:"",linkedin:""}],address:"Atlanta Georgia Division — find at drhorton.com",website:"drhorton.com"},
   {p:33,name:"Smith Douglas Homes",type:"Volume",zone:"South / Newnan / Hoschton",lots:1001,contacts:[{name:"Atlanta Division Purchasing Manager",title:"Corporate",phone:"",email:"",linkedin:""}],address:"~30 communities metro-wide — smithdouglas.com",website:"smithdouglas.com"},
 ];
+
+// Angle & Action — source: Expanded Builder Quadrant List (June 2026)
+const BUILDER_ANGLE={
+  1:'Highest avg price on the list at $4.15M. 3 under construction, 22 pipeline lots. At this price, the 5-year services plan is EXPECTED by buyers — not a perk. The 10-year workmanship warranty is a baseline requirement. A/V integration team coordinates on every home; be ready to discuss rooftop infrastructure.',
+  2:'Second largest Atlanta builder by closings. They operate design studios — GAF architectural shingle lines matter more here than at other volume builders. 1,752 pipeline lots means one approved-vendor status unlocks a massive recurring block. The 5-year services plan is a real buyer closing differentiator their design studio can co-market as a premium included feature. 190 starts per quarter = ongoing revenue once you\'re on the list.',
+  3:'$1.8M average, 4 under construction, 19 pipeline lots — not on anyone\'s radar yet. Early relationship = first sub on a growing luxury pipeline. 19 lots means the 5-year services plan creates significant recurring service revenue. The two-warranty story (GAF 50-yr + Aidan\'s 10-yr workmanship) is the pitch that opens this door.',
+  4:'Currently building CLAXTON — Milton\'s newest exclusive community. 4,800–6,000 sq ft, pools, 3-car garages. Their trade list is actively forming — best timing window on this list. At $1.9M+, the 5-year services plan is what buyers expect at closing. Outside-the-box: offer to be present at Claxton model home events as their "exterior care partner" — positions Aidan\'s inside their brand story.',
+  5:'$701K avg is the sweet spot for the 5-year services plan — move-up buyers who expect premium but don\'t always see exterior care bundled at closing. Green Brick builds under multiple brands including Trophy Signature Homes ($700K+). 451 pipeline lots + 61 starts per quarter = major recurring revenue once on the list. For Trophy homes, position the 5-year services plan as part of the "Trophy experience" — a co-branded exterior care program that justifies the premium price point.',
+  6:'30-year reputation, 11 pipeline lots. His existing trade relationships are aging — that\'s the opening. Don\'t pitch; connect as a peer. The 5-year services plan and 11 future lots become the conversation once trust is there.',
+  7:'Documented process is the only language Jeff Wertz speaks. Mason Meadows controls access to Jeff. The 5-year services plan is a process story here — zero callbacks, scheduled maintenance, documented delivery.',
+  8:'The overlap between luxury and volume at $913K avg — 5-year services plan and 10-year workmanship warranty are expected at this price. Crossing at Coal Mountain in Cumming just opened March 2026 — trade list actively forming right now. With 33 Atlanta-area communities and 1,836 pipeline lots, landing on their approved list is a division-wide recurring block. Toll Brothers has a formal Trade Partner program — apply as a Trade Partner candidate, not just another sub bidding.',
+  9:'Waterfront at Arden on Lanier = faster grime + algae = annual pressure washing in the 5-year services plan is preventive maintenance, not a callback. Governors Towne Club has ARB standards — the services plan is an ARB compliance story. 19 pipeline lots at Maison at Hollyberry. Know their communities before you walk in.',
+  10:'Family succession in progress — Pete Brown is your long-term relationship. ARB communities (The Manor, Royal Lakes) require ongoing exterior compliance. The 5-year services plan is an ARB compliance story for these communities. Pete is building his own reputation — position Aidan\'s as the partner he brings in to modernize the sub list.',
+  11:'$1.33M average, 5 under construction, 38 pipeline lots — largest lot pipeline in this quadrant. Block booking across that pipeline is the lead pitch. The 5-year services plan at $1.3M hits the sweet spot: buyers at this price expect it but rarely see it bundled at closing.',
+  12:'Pulte\'s geographic footprint (Alpharetta + Woodstock) overlaps perfectly with Day 1A and Day 2. 1,411 pipeline lots means one approved-vendor approval unlocks a very large recurring block. Pulte buyers are move-up families — the 5-year services plan is a real differentiator: "Your Pulte home includes 5 years of exterior care." Fastest path: superintendent introductions on active Woodstock communities.',
+  13:'Top 10 Atlanta, privately held, GAHBA member. Cherokee/Cobb/Paulding focus = direct overlap with Day 2. Private company means real conversations with decision-makers. The 5-year services plan at $516K is a genuine differentiator — buyers moving into a new Cherokee County home haven\'t seen this before. Outside-the-box: offer to be their exclusive preferred roofer in Cherokee and Cobb.',
+  14:'33 starts per quarter with 39 active UC = one of the most actively building companies on this entire list by start rate. $845K avg hits the 5-year services plan sweet spot perfectly. Their territory overlaps Day 1B and Day 2 routes. At 33 starts/quarter, they need reliable subs — lead with your reliability track record + documented process.',
+  15:'30 years on word-of-mouth alone. 5 under construction across 4 counties. His sub list is short and extremely sticky once you\'re on it. The 5-year services plan eliminates his most common callback — annual gutter cleaning — while making his homes look better for longer, protecting the reputation that is his entire business model.',
+  16:'$1.73M average, 3 active roofs — not on most subs\' radar yet. Early relationship means getting in before the list is locked. At $1.73M, the 5-year services plan matches buyer expectation and gives the builder a differentiator for their sales collateral.',
+  17:'55+ community at Serenity. The 5-year services plan is a sales tool Burke should put in his model home brochure — 55+ buyers rank low-maintenance exterior as their #1 purchase driver. It goes in the SALES CONVERSATION, not the disclosure packet. Outside-the-box: offer to pilot it as a co-branded "Serenity Home Care Plan."',
+  18:'EarthCraft certification requires roofing and ventilation coordination — a roofer who doesn\'t know those specs can fail the inspection. Annual gutter maintenance in the 5-year services plan is required to maintain EarthCraft envelope performance. Technical conversation, not a pitch.',
+  19:'Metro Atlanta\'s leading luxury custom builder by reputation. Active lots at The Manor Golf & Country Club where ARB standards are non-negotiable. NAHB finalist status means craft-consciousness is their identity. At $3M+, the 5-year services plan is table stakes. Position it as protecting their 2025 Luxury Lifestyle Award reputation — "Every Loudermilk home looks like the day it was built, five years later."',
+  20:'Their brand promise explicitly states "above-and-beyond energy efficiency and warranty commitment" — that language is your pitch on a silver platter. Aidan\'s two-warranty package is the physical proof of their own brand claim. Outside-the-box: bring a printout of their own website language and show how the 5-year services plan and 10-year workmanship warranty are the tangible deliverables behind their marketing promise.',
+  21:'At $761K avg, David Weekley buyers are premium move-up — exactly the demographic where the 5-year services plan lands hardest. 610 pipeline lots = significant block booking potential. David Weekley promotes warranty programs heavily in their marketing — our 10-year workmanship warranty and 5-year services plan aligns with their existing brand language. 48 starts per quarter means active communities to walk.',
+  22:'At $1.89M, the 5-year services plan is what buyers have already researched and expect — it\'s a confirmation, not a surprise. Premium personal relationship built on trust first. Don\'t lead with price.',
+  23:'100% referral business + EarthCraft certified. The 5-year services plan is a reputation protection story: every Crownline home looks like the referral that sold it — 5 years later. Know the EarthCraft spec before approaching Michael Sakoutis.',
+  24:'$400K to $4M range across 35 years — they need a sub who holds quality consistent at both ends. At the $4M end, the 5-year services plan and 10-year workmanship warranty are expected. Demonstrating range gets you on the list.',
+  25:'Full design-build practice — Finn has seen every pitch. He\'s looking for someone who understands spec intent. The 5-year services plan extends the client experience past closing and protects the quality story he\'s spent a career building.',
+  26:'Block booking across 3 Cresswind communities + the 5-year services plan as the primary buyer sales tool. Cresswind\'s 55+ buyers rank low-maintenance exterior as their #1 purchase driver. Dawson Springs (785 homes, 2027) is building its trade list RIGHT NOW. Outside-the-box: propose a co-branded "Cresswind Home Care Program" — Kolter can advertise it across all three communities as a Cresswind standard.',
+  27:'Private company = purchasing decisions are made more personally — far more accessible than the national builders. 138 starts per quarter, 738 pipeline lots. At $327K avg, the 5-year services plan is a genuine differentiator buyers at this price rarely see bundled at closing. Lead with how the 5-year services plan reduces callbacks AND improves their reviews/referrals — that\'s a business case, not just a pitch.',
+  28:'4,000+ homes. Atlanta Magazine\'s Best Home Builder. Their communities (Delmont in Buckhead, Voysey in Downtown Alpharetta, Summerhill in Atlanta) are walkable and highly photographed. The 5-year services plan isn\'t maintenance — it\'s brand protection: one unkempt home in a Hedgewood neighborhood undercuts the award-winning brand they\'ve spent decades building.',
+  29:'7 closings at $1.49M. Build Partners structure may mean one relationship opens multiple projects simultaneously. The 5-year services plan fits the luxury buyer demographic. Research the structure on LinkedIn before calling.',
+  30:'$1.14M avg with 24 closings puts Bercher in luxury territory with real volume. At $1.14M, buyers absolutely expect the 5-year services plan and 10-year workmanship warranty. Bercher is on the cusp between luxury custom and volume — more approachable than pure luxury builders while still responding to the quality story.',
+  31:'ICF construction + rooftop decks = different technical conversation. Buyers are athletes, entertainers, C-suite — the 5-year services plan is part of the lifestyle. Patrick made an unconventional career pivot himself; your origin story will land here once technical credibility is established.',
+  32:'The biggest volume in the market. Getting on D.R. Horton\'s approved list is the largest single revenue unlock on this list — but it\'s a 6–12 month process. Differentiator: GAF Certified + zero-callback track record + 10-year workmanship warranty (fewer post-close calls = real dollar savings they track per division). One superintendent advocate moves you from unknown to approved faster than any corporate form.',
+  33:'~30 active communities across Greater Atlanta. At $359K, buyers do not expect a 5-year exterior services plan bundled at closing — it is an unprecedented differentiator Smith Douglas can put in their ads. Outside-the-box: offer to help them write the line: "Every Smith Douglas home includes 5 years of exterior care — gutters, pressure washing, and windows, covered." New Fall 2026 communities are building trade lists now.'
+};
+
+const BUILDER_ACTION={
+  1:'Find Christopher Perry at GAHBA or NAHB. Premium conversation only — lead with GAF architectural shingle line + 10-year workmanship warranty. Layer in the 5-year services plan as the expected closing deliverable at $4M+.',
+  2:'Submit vendor inquiry at ashtonwoods.com/contact-us. Call (770) 481-2000 — ask for Purchasing. Walk one active Alpharetta or Cumming community TODAY and introduce yourself to the super. Lead with GAF Certified + 10-year workmanship warranty + 5-year services plan as a buyer closing tool.',
+  3:'Call or visit the office. Identify principal on LinkedIn. Lead with the two-warranty story + 5-year services plan as a buyer differentiator. 4 active roofs is an immediate conversation — get in before the list locks at 19 lots.',
+  4:'Contact via verticalluxury.com/contact this week. Drive the Claxton site on Hopewell Rd and introduce yourself to the super on-site. Lead with two-warranty story + 5-year services plan. Trade list is actively forming — timing is now.',
+  5:'Visit greenbrickpartners.com and trophysignaturehomes.com. Find the Atlanta Division purchasing contact. Walk an active Trophy brand community in North Atlanta — overlaps your Day 1 route. Lead with GAF Certified + 5-year services plan as a Trophy buyer experience differentiator.',
+  6:'Find Tommy at GAHBA. One real conversation — don\'t pitch. Connect as a peer. The 11 lots + the 5-year services plan become the story when the timing is right.',
+  7:'Find Mason Meadows at GAHBA. Lead with documented process and zero callbacks. Get Mason before you get to Jeff.',
+  8:'Call (888) 686-5542 — ask for Atlanta Division purchasing. Visit the Crossing at Coal Mountain site in Cumming — new community, trade list not locked. Introduce yourself to the super and construction manager. Frame yourself as a Trade Partner candidate. Lead with GAF Certified + two-warranty story + 5-year services plan.',
+  9:'Email info@elevationbuildingco.com referencing Arden on Lanier waterfront specs. Lead with the 5-year services plan as an ARB compliance tool. Ask about roofing coordination for Maison at Hollyberry. Request a 20-minute meeting.',
+  10:'Find Tony at GAHBA. Get introduced to Pete. Build with Pete over time. 5-year services plan = ARB compliance angle for The Manor and Royal Lakes.',
+  11:'Call (770) 973-5685 or stop by the Woodstock office. Identify principal via LinkedIn. Lead with block booking across the 38-lot pipeline + 5-year services plan as a buyer closing tool.',
+  12:'Call 2475 Northwinds Pkwy Alpharetta — ask for Purchasing or Construction Manager. On Day 2 route, stop at any active Pulte Woodstock community and introduce yourself to the super. Lead with GAF Certified + 5-year services plan as a buyer differentiator.',
+  13:'Find Traton at GAHBA events — they\'re consistent attendees. Visit tratonhomes.com to identify active communities. On your Day 2 route, stop by any active Traton community. Offer exclusivity in Cherokee/Cobb as a conversation starter.',
+  14:'Visit patrickmalloy.com to identify active communities. Drive an active community on your Day 2 route and introduce yourself to the super. Find the principal on LinkedIn. Lead with reliability + GAF Certified + 5-year services plan as a buyer differentiator at the $845K price point.',
+  15:'Find Joey Hipps at GAHBA events specifically. Come as a peer, not a vendor. Lead with reliability + zero callbacks. Mention the 5-year services plan only after trust is established — frame it as protecting the reputation he\'s spent 30 years building.',
+  16:'Call (678) 523-5997 or visit the Marietta office. Identify principal via LinkedIn. Lead with the two-warranty story + 5-year services plan. 3 active roofs is an immediate conversation.',
+  17:'Find Burke Jackson at GAHBA. Lead with the 5-year services plan as a 55+ buyer sales tool. Offer to pilot it at Serenity as a co-branded program. Warranty transfer story seals it.',
+  18:'LinkedIn outreach to Chris Spencer. Lead with EarthCraft ventilation and envelope knowledge. Come with substance — they are engineers. 5-year services plan follows once technical credibility is established.',
+  19:'Call (770) 485-2600 or email info@loudermilkhomes.com. Find principal at NAHB (2024 finalist). Lead with GAF architectural shingle line + 10-year workmanship warranty. Never lead with price.',
+  20:'Visit theprovidencegroup.com. Identify the construction or purchasing contact for single-family division. Stop by their Johns Creek office. Open with energy efficiency specs. The 5-year services plan follows as the buyer-facing proof of their brand promise.',
+  21:'Visit davidweekley.com to identify active Atlanta communities. Contact Atlanta Division purchasing. Walk an active community and meet the super. Lead with GAF Certified + 10-year workmanship warranty + 5-year services plan matching their own quality-and-care brand story.',
+  22:'Call (770) 844-9976 or stop by the Dunwoody office. Lead with the 5-year services plan as an expected buyer deliverable at $1.9M. Ask for 20 minutes with Ty White personally.',
+  23:'Call (770) 858-5113 or stop by. Lead with EarthCraft ventilation knowledge. Get to Michael Sakoutis. Frame the 5-year services plan as protecting the referral reputation that is their entire business model.',
+  24:'Call (770) 642-8272 or stop by. Verify GAHBA membership first. Lead with range — quality at both ends. The 5-year services plan is your trophy-end differentiator.',
+  25:'Find Finn at GAHBA or NAHB. Lead with design-stage coordination knowledge. The 5-year services plan and 10-year workmanship warranty are your closing story once design-stage credibility is established — not before.',
+  26:'Call (470) 604-7302 or visit the Buckhead office. Find Tony Adams at GAHBA/NAHB. Ask specifically about the Dawson Springs trade list — that is the opening. Request intro to Joe Hawkins. Lead with the 5-year services plan as a Cresswind buyer program, not a roofing pitch.',
+  27:'Call (470) 645-0128 — ask for purchasing or construction contact. Research leadership on theorg.com/org/rockhaven-homes. Find active communities on rockhavenga.com — 168 under construction means active sites to walk. Lead with GAF Certified + zero-callback track record + 5-year services plan.',
+  28:'Find Pam Sessions or Don Donnelly at GAHBA. Reference Delmont, Voysey, and Summerhill specifically. Lead with the 5-year services plan as brand protection for their walkable, highly visible neighborhoods.',
+  29:'Call (404) 488-2431. Research company structure on LinkedIn — identify who controls sub relationships. Reach out with block booking + 5-year services plan combo.',
+  30:'Research bercherhomes.com to identify geography and active communities. Find owner/principal on LinkedIn. Lead with the two-warranty story + 5-year services plan. 9 active UC = immediate conversation once geography is confirmed.',
+  31:'LinkedIn outreach to Patrick Henderson. Lead with ICF envelope knowledge — he will know if you can\'t articulate it. Your pivot story + 5-year services plan are your bridge once technical credibility is established.',
+  32:'Find the Atlanta Division office via drhorton.com and call — ask about roofing vendor qualification. Walk any active D.R. Horton community in the South corridor and introduce yourself to the super. Ask if the approved list has openings. This is a marathon — start super relationships now.',
+  33:'Visit smithdouglas.com/find-a-home. Drive to the nearest active community and meet the superintendent. Simultaneously call the Atlanta division office and ask for Purchasing. Lead with GAF Certified + 5-year services plan as a buyer marketing differentiator.'
+};
+
+// Zonda data — source: ATL.xlsx
+const ZONDA_LOTS={2:1752,5:451,8:1836,12:1411,13:276,14:113,21:610,26:155,27:738,32:4804,33:1001};
+const ZONDA_PRICE={1:4149615,2:401312,5:701465,8:912992,12:586878,13:516416,14:845246,21:761046,26:1421787,27:326859,32:428442,33:358671};
+const ZONDA_SQFT={1:6033,2:2010,5:2392,8:3199,12:2507,13:2195,14:3963,21:2804,26:2162,27:2015,32:2442,33:2102};
 
 const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"visited",label:"Site visited"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
 const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",visited:"Site visited",meeting:"Meeting set",approved:"Approved vendor"};
@@ -284,7 +374,7 @@ function parseNotes(str){
     line=line.trim();if(!line)return;
     const m=line.match(/^\[([^\]]+)\] (.+)$/);
     if(m)entries.push({ts:m[1],text:m[2]});
-    else entries.push({ts:'',text:line});
+    else entries.push({ts:'Jun 3, 2026',text:line});
   });
   return entries;
 }
@@ -292,20 +382,28 @@ function fmtNoteTs(){
   const now=new Date();
   return now.toLocaleDateString([],{month:'short',day:'numeric'})+' '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 }
-function renderLogHtml(entries,appendCmd){
-  const rows=entries.map(e=>`<div class="note-entry"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div>`).join('');
+function renderLogHtml(entries,appendCmd,delCmd){
+  const rows=entries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="${delCmd.replace('IDX',i)}" title="Delete entry">×</button></div>`).join('');
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){${appendCmd};}"/></div></div>`;
+}
+function deleteNote(p,field,idx){
+  const log=getLog(p);const entries=parseNotes(log[field]);
+  entries.splice(idx,1);
+  log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
+  queueSaveLog(p);render();
 }
 function appendNote(p,inputEl,field){
   const text=inputEl.value.trim();if(!text)return;
   const log=getLog(p);
   const entry=`[${fmtNoteTs()}] ${text}`;
   log[field]=log[field]?log[field]+'\n'+entry:entry;
+  if(['emailNote','liNote','siteVisitNote','notes'].includes(field))log.lastActivity=new Date().toISOString();
   inputEl.value='';
   queueSaveLog(p);
   if(field==='notes')addAct(getB(p).name,'notes',text,log.rep);
   else if(field==='emailNote')addAct(getB(p).name,'emailNote',text,log.rep);
   else if(field==='liNote')addAct(getB(p).name,'liNote',text,log.rep);
+  else if(field==='siteVisitNote')addAct(getB(p).name,'siteVisitNote',text,log.rep);
   render();
 }
 
@@ -359,11 +457,33 @@ async function loadAll(){
   }catch(e){
     setSyncStatus('error');showToast('Could not connect — working offline');
   }
+  // Seed Angle & Action from constants if not yet saved to Sheet
+  builders.forEach(b=>{
+    const log=getLog(b.p);
+    if(!log.angle&&BUILDER_ANGLE[b.p]){log.angle=BUILDER_ANGLE[b.p];queueSaveLog(b.p);}
+    if(!log.action&&BUILDER_ACTION[b.p]){log.action=BUILDER_ACTION[b.p];queueSaveLog(b.p);}
+  });
+  // Sync Zonda lot counts — overrides any stale Sheet values
+  Object.entries(ZONDA_LOTS).forEach(([p,lots])=>{
+    const b=builders.find(x=>x.p===parseInt(p));
+    if(b&&b.lots!==lots){b.lots=lots;apiPost({action:'saveBuilderInfo',data:{builderId:parseInt(p),name:b.name,address:b.address,website:b.website,lots}}).catch(()=>{});}
+  });
+  // Backfill Jun 3 2026 for any existing entries that have outreach/visit data but no lastActivity
+  builders.forEach(b=>{
+    const log=getLog(b.p);
+    if(!log.lastActivity&&(log.emailNote||log.liNote||log.siteVisitNote||log.notes)){
+      log.lastActivity=new Date(2026,5,3,12,0,0).toISOString();
+      queueSaveLog(b.p);
+    }
+  });
   document.getElementById('loading').style.display='none';
   render();updateStats();populateRepFilter();
 }
 
-function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:''};return logs[p];}
+function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:''};return logs[p];}
+function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
+}
+function autosizeAll(){document.querySelectorAll('textarea.ei').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
 function getB(p){return builders.find(b=>b.p===p);}
 function nowStr(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
 function todayStr(){return new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
@@ -379,7 +499,7 @@ function queueSaveLog(p){
 }
 
 function addAct(builderName,field,newVal,rep){
-  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,address:`Address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`};
+  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`};
   const entry={ts:nowStr(),day:todayKey(),dayLabel:todayStr(),msg:msgs[field]||`Updated: <strong>${builderName}</strong>`,field,status:field==='status'?newVal:null,builder:builderName,rep:rep||''};
   activity.push(entry);
   apiPost({action:'saveActivity',data:entry}).catch(()=>{});
@@ -433,21 +553,19 @@ function renderContactsCell(b){
   return html;
 }
 
+function fmtDisplayDate(iso){if(!iso)return'';try{const[y,m,d]=iso.split('-').map(Number);const dt=new Date(y,m-1,d);if(isNaN(dt.getTime()))return iso;return dt.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});}catch(e){return iso;}}
 function renderOutreachCell(p,type){
   const log=getLog(p);
   const dateVal=type==='email'?log.emailDate:log.liDate;
   const noteVal=type==='email'?log.emailNote:log.liNote;
-  const sentClass=type==='email'?'email-sent':'li-sent';
-  const sentLabel=type==='email'?'Email sent':'Connected';
-  const dateId=type==='email'?`ed-${p}`:`ld-${p}`;
-  const onDateChange=type==='email'?`setEmailDate(${p},this.value)`:`setLiDate(${p},this.value)`;
   const field=type==='email'?'emailNote':'liNote';
-  const bgStyle=type==='email'?'background:#fffdf7;':'background:#f7faff;';
-  return`<div class="outreach-cell" style="${bgStyle}padding:3px;">
-    ${dateVal?`<span class="outreach-sent ${sentClass}">${sentLabel} ${dateVal}</span>`:''}
-    <input type="date" class="outreach-date" id="${dateId}" value="${dateVal||''}" onchange="${onDateChange}" title="Date of outreach"/>
-    ${renderLogHtml(parseNotes(noteVal),`appendNote(${p},this,'${field}')`)}
-  </div>`;
+  const dateField=type==='email'?'emailDate':'liDate';
+  const sentLabel=type==='email'?'Email sent':'LinkedIn connected';
+  const onDateChange=type==='email'?`setEmailDate(${p},this.value)`:`setLiDate(${p},this.value)`;
+  const noteEntries=parseNotes(noteVal);
+  let rows='';
+  rows+=noteEntries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'${field}',${i})" title="Delete entry">×</button></div>`).join('');
+  return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'${field}');}"/></div></div>`;
 }
 
 function render(){
@@ -468,34 +586,41 @@ function render(){
   });
   const log_=p=>getLog(p);
   document.getElementById('tbody').innerHTML=filtered.map(b=>{
+
     const log=log_(b.p);
     const statOpts=STATUS_OPTS.map(o=>`<option value="${o.val}"${log.status===o.val?' selected':''}>${o.label}</option>`).join('');
     const repOpts=`<option value="">— Unassigned —</option>`+reps.map((r,ri)=>`<option value="${r}"${log.rep===r?' selected':''}>${r}</option>`).join('');
     return`<tr>
-      <td style="color:#aaa;font-size:11px;">${b.p}</td>
-      <td>
+      <td class="col-freeze-1" style="color:#aaa;font-size:11px;">${b.p}</td>
+      <td class="col-freeze-2">
         <input class="ei" value="${esc(b.name)}" placeholder="Builder name" onblur="setBuilderInfo(${b.p},'name',this.value)" style="font-weight:600;font-size:12px;"/>
         <span class="badge ${b.type==='Luxury'?'badge-lux':'badge-vol'}" style="margin-top:3px;display:inline-block;">${b.type}</span>
       </td>
       <td style="font-size:11px;color:#888;">${b.zone}</td>
       <td>${renderContactsCell(b)}</td>
       <td>
-        <input class="ei" value="${esc(b.address)}" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" style="margin-bottom:3px;"/>
-        <input class="ei" value="${esc(b.website)}" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" style="color:#1a3a6b;"/>
+        <textarea class="ei" rows="2" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" style="margin-bottom:3px;resize:none;word-break:break-word;">${esc(b.address)}</textarea>
+        <textarea class="ei" rows="1" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" style="color:#1a3a6b;resize:none;word-break:break-all;">${esc(b.website)}</textarea>
       </td>
-      <td><input class="ei" type="number" value="${b.lots===null?'':b.lots}" placeholder="—" onblur="setBuilderInfo(${b.p},'lots',this.value)" style="text-align:right;"/></td>
+      <td><input class="ei" type="text" value="${b.lots===null?'':b.lots}" placeholder="—" onblur="setBuilderInfo(${b.p},'lots',this.value)" style="text-align:right;"/></td>
+      <td style="font-size:12px;text-align:right;color:#888;padding-right:14px;">${ZONDA_PRICE[b.p]!=null?'$'+ZONDA_PRICE[b.p].toLocaleString():'—'}</td>
+      <td style="font-size:12px;text-align:right;color:#888;padding-right:14px;">${ZONDA_SQFT[b.p]!=null?ZONDA_SQFT[b.p].toLocaleString():'—'}</td>
       <td>
         ${log.rep?repPill(log.rep):'<span style="font-size:11px;color:#bbb;">— unassigned —</span>'}
         <select class="fsel" style="margin-top:4px;" onchange="setRep(${b.p},this.value)">${repOpts}</select>
       </td>
-      <td style="padding:4px 6px;">${renderOutreachCell(b.p,'email')}</td>
-      <td style="padding:4px 6px;">${renderOutreachCell(b.p,'li')}</td>
+      <td>${renderOutreachCell(b.p,'email')}</td>
+      <td>${renderOutreachCell(b.p,'li')}</td>
+      <td>${renderLogHtml(parseNotes(log.siteVisitNote),`appendNote(${b.p},this,'siteVisitNote')`,`deleteNote(${b.p},'siteVisitNote',IDX)`)}</td>
       <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select></td>
-      <td><input type="date" class="fsel" value="${log.date||''}" onchange="setDate(${b.p},this.value)"/></td>
-      <td>${renderLogHtml(parseNotes(log.notes),`appendNote(${b.p},this,'notes')`)}</td>
+      <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
+      <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
+      <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#1a3a6b;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
+      <td>${renderLogHtml(parseNotes(log.notes),`appendNote(${b.p},this,'notes')`,`deleteNote(${b.p},'notes',IDX)`)}</td>
     </tr>`;
   }).join('');
   updateStats();
+  setTimeout(autosizeAll,0);
 }
 
 function renderRepManager(){
