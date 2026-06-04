@@ -10,12 +10,12 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:13px;}
 .topbar{background:#fff;border-bottom:1px solid #e5e5e3;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;}
 .brand{display:flex;align-items:center;gap:10px;}
-.brand-logo{width:36px;height:36px;background:#1a3a6b;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+.brand-logo{width:36px;height:36px;background:#003DA5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
 .brand-name{font-size:16px;font-weight:600;color:#1a1a1a;}
 .brand-sub{font-size:11px;color:#888;}
 .sync-indicator{font-size:11px;color:#888;display:flex;align-items:center;gap:5px;}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;}
-.sync-dot.ok{background:#3B6D11;}
+.sync-dot.ok{background:#003DA5;}
 .sync-dot.saving{background:#BA7517;animation:pulse 1s infinite;}
 .sync-dot.error{background:#A32D2D;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
@@ -27,12 +27,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-row{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid #e5e5e3;padding-bottom:0;}
 .tab{font-size:12px;padding:7px 14px;border:none;background:none;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:5px;}
 .tab:hover{color:#1a1a1a;}
-.tab.active{color:#1a3a6b;border-bottom-color:#1a3a6b;font-weight:500;}
+.tab.active{color:#003DA5;border-bottom-color:#003DA5;font-weight:500;}
 .card{background:#fff;border:1px solid #e5e5e3;border-radius:10px;overflow:hidden;margin-bottom:16px;}
 .filters{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #f0f0ee;}
 .filters input,.filters select{font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;outline:none;}
 .filters input{flex:1;min-width:140px;}
-.filters input:focus,.filters select:focus{border-color:#1a3a6b;}
+.filters input:focus,.filters select:focus{border-color:#003DA5;}
 .edit-hint{font-size:11px;color:#888;padding:8px 16px;background:#fafaf8;border-bottom:1px solid #f0f0ee;display:flex;align-items:center;gap:5px;}
 .scroll-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);}
 .col-freeze-1{position:sticky;left:0;z-index:6;background:#fff;}
@@ -52,14 +52,14 @@ tr:hover td{background:#fafaf8;}
 .badge-vol{background:#EEEDFE;color:#3C3489;}
 .ei{font-size:12px;border:1px solid transparent;border-radius:5px;padding:3px 6px;background:transparent;color:#1a1a1a;width:100%;font-family:inherit;}
 .ei:hover{border-color:#e0e0de;background:#fff;}
-.ei:focus{border-color:#1a3a6b;background:#fff;outline:none;}
+.ei:focus{border-color:#003DA5;background:#fff;outline:none;}
 .ei::placeholder{color:#bbb;}
 .fsel{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;}
-.fsel:focus{border-color:#1a3a6b;}
+.fsel:focus{border-color:#003DA5;}
 .outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 6px;background:#fafaf8;color:#888;width:100%;outline:none;font-family:inherit;margin-top:4px;}
-.outreach-date:focus{border-color:#1a3a6b;background:#fff;color:#1a1a1a;}
+.outreach-date:focus{border-color:#003DA5;background:#fff;color:#1a1a1a;}
 .note-sent-label{font-weight:600;color:#1a1a1a;}
-.add-contact-btn{font-size:11px;color:#1a3a6b;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
+.add-contact-btn{font-size:11px;color:#003DA5;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
 .add-contact-btn:hover{text-decoration:underline;}
 .contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
 .contact-row:last-of-type{border-bottom:none;margin-bottom:0;}
@@ -68,8 +68,8 @@ tr:hover td{background:#fafaf8;}
 .rep-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500;margin-bottom:4px;}
 .btn{font-size:12px;padding:7px 14px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;}
 .btn:hover{background:#f5f5f3;}
-.btn-primary{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
-.btn-primary:hover{background:#163060;}
+.btn-primary{background:#003DA5;color:#fff;border-color:#003DA5;}
+.btn-primary:hover{background:#002f8a;}
 .log-entry{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f3;}
 .log-entry:last-child{border-bottom:none;}
 .log-time{font-size:11px;color:#aaa;white-space:nowrap;min-width:52px;padding-top:1px;}
@@ -78,15 +78,15 @@ tr:hover td{background:#fafaf8;}
 .lb-none{background:#F1EFE8;color:#5F5E5A;}
 .lb-contacted{background:#FAEEDA;color:#633806;}
 .lb-visited{background:#E6F1FB;color:#0C447C;}
-.lb-meeting{background:#E1F5EE;color:#085041;}
-.lb-approved{background:#EAF3DE;color:#27500A;}
+.lb-meeting{background:#E1F5EE;color:#003DA5;}
+.lb-approved{background:#EAF3DE;color:#003DA5;}
 .day-group{margin-bottom:1.25rem;}
 .day-label{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #f0f0ee;}
 .empty{font-size:13px;color:#aaa;padding:2rem;text-align:center;}
 .rep-manager-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
 .rep-chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;padding:6px 12px;border-radius:99px;border:1px solid #e0e0de;}
 .loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:12px;}
-.spinner{width:32px;height:32px;border:3px solid #e0e0de;border-top-color:#1a3a6b;border-radius:50%;animation:spin .8s linear infinite;}
+.spinner{width:32px;height:32px;border:3px solid #e0e0de;border-top-color:#003DA5;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .toast{position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;font-size:12px;padding:10px 16px;border-radius:8px;z-index:9999;opacity:0;transition:opacity .3s;}
 .toast.show{opacity:1;}
@@ -102,7 +102,7 @@ tr:hover td{background:#fafaf8;}
 .note-del:hover{color:#A32D2D;}
 .note-add{margin-top:5px;width:100%;}
 .note-add input{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:5px 8px;width:100%;background:#fafaf8;outline:none;font-family:inherit;color:#1a1a1a;}
-.note-add input:focus{border-color:#1a3a6b;background:#fff;}
+.note-add input:focus{border-color:#003DA5;background:#fff;}
 .note-add input::placeholder{color:#bbb;}
 </style>
 </head>
@@ -134,7 +134,7 @@ tr:hover td{background:#fafaf8;}
     <div class="stat"><div class="stat-label">Total builders</div><div class="stat-val">33</div></div>
     <div class="stat"><div class="stat-label">Not contacted</div><div class="stat-val" id="s-none">—</div></div>
     <div class="stat"><div class="stat-label">In progress</div><div class="stat-val" id="s-prog" style="color:#854F0B;">—</div></div>
-    <div class="stat"><div class="stat-label">Approved / meeting</div><div class="stat-val" id="s-done" style="color:#3B6D11;">—</div></div>
+    <div class="stat"><div class="stat-label">Approved / meeting</div><div class="stat-val" id="s-done" style="color:#003DA5;">—</div></div>
   </div>
 
   <div class="tab-row">
@@ -369,7 +369,7 @@ const ZONDA_SQFT={1:6033,2:2010,5:2392,8:3199,12:2507,13:2195,14:3963,21:2804,26
 const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"visited",label:"Site visited"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
 const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",visited:"Site visited",meeting:"Meeting set",approved:"Approved vendor"};
 const LB_CLASS={none:"lb-none",contacted:"lb-contacted",visited:"lb-visited",meeting:"lb-meeting",approved:"lb-approved"};
-const REP_COLORS=[{bg:"#E6F1FB",color:"#0C447C"},{bg:"#E1F5EE",color:"#085041"},{bg:"#EEEDFE",color:"#3C3489"},{bg:"#FAEEDA",color:"#633806"},{bg:"#FAECE7",color:"#712B13"},{bg:"#FBEAF0",color:"#72243E"},{bg:"#EAF3DE",color:"#27500A"},{bg:"#F1EFE8",color:"#444441"}];
+const REP_COLORS=[{bg:"#E6F1FB",color:"#0C447C"},{bg:"#E1F5EE",color:"#003DA5"},{bg:"#EEEDFE",color:"#3C3489"},{bg:"#FAEEDA",color:"#633806"},{bg:"#FAECE7",color:"#712B13"},{bg:"#FBEAF0",color:"#72243E"},{bg:"#EAF3DE",color:"#003DA5"},{bg:"#F1EFE8",color:"#444441"}];
 
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function repColor(i){return REP_COLORS[i%REP_COLORS.length];}
@@ -663,7 +663,7 @@ function render(){
       <td>${renderContactsCell(b)}</td>
       <td>
         <textarea class="ei" rows="2" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" style="margin-bottom:3px;resize:none;word-break:break-word;">${esc(b.address)}</textarea>
-        <textarea class="ei" rows="1" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" style="color:#1a3a6b;resize:none;word-break:break-all;">${esc(b.website)}</textarea>
+        <textarea class="ei" rows="1" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" style="color:#003DA5;resize:none;word-break:break-all;">${esc(b.website)}</textarea>
       </td>
       <td><input class="ei" type="text" value="${b.lots===null?'':b.lots}" placeholder="—" onblur="setBuilderInfo(${b.p},'lots',this.value)" style="text-align:right;"/></td>
       <td style="font-size:12px;text-align:right;color:#888;padding-right:14px;">${ZONDA_PRICE[b.p]!=null?'$'+ZONDA_PRICE[b.p].toLocaleString():'—'}</td>
@@ -678,7 +678,7 @@ function render(){
       <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select></td>
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
-      <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#1a3a6b;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
+      <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#003DA5;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
       <td>${renderLogHtml(parseNotes(log.notes),`appendNote(${b.p},this,'notes')`,`deleteNote(${b.p},'notes',IDX)`)}</td>
     </tr>`;
   }).join('');
