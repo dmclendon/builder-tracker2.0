@@ -170,6 +170,13 @@ tr:hover td{background:#fafaf8;}
           <option value="meeting">Meeting set</option>
           <option value="approved">Approved vendor</option>
         </select>
+        <select id="f-priority" onchange="render()">
+          <option value="">All priorities</option>
+          <option value="now">Now</option>
+          <option value="high">High</option>
+          <option value="med">Med</option>
+          <option value="low">Low</option>
+        </select>
         <select id="f-rep" onchange="render()">
           <option value="">All reps</option>
         </select>
@@ -180,6 +187,7 @@ tr:hover td{background:#fafaf8;}
           <colgroup>
             <col style="width:28px">
             <col style="width:210px">
+            <col style="width:100px">
             <col style="width:110px">
             <col style="width:210px">
             <col style="width:210px">
@@ -200,6 +208,7 @@ tr:hover td{background:#fafaf8;}
             <tr>
               <th class="col-freeze-1">#</th>
               <th class="col-freeze-2">Builder</th>
+              <th>Priority</th>
               <th>Zone</th>
               <th>Contacts</th>
               <th>Address / website</th>
@@ -457,6 +466,46 @@ async function loadAll(){
   }catch(e){
     setSyncStatus('error');showToast('Could not connect — working offline');
   }
+  // Seed baseline priorities from Expanded Builder Quadrant List
+  const BASELINE_PRIORITY={
+    4:'now',   // Vertical Luxury — trade list actively forming, timing is NOW
+    8:'now',   // Toll Brothers — trade list forming in your territory right now
+    26:'now',  // Kolter — Dawson Springs trade list building RIGHT NOW
+    1:'high',  // Perry Custom — 3 active roofs, immediate conversation
+    2:'high',  // Ashton Woods — HIGH block booking, biggest pipeline in zone
+    5:'high',  // Green Brick — HIGH block booking, 451 lots
+    12:'high', // Pulte — HIGH block booking, 1,411 lots
+    14:'high', // Patrick Malloy — most active by start rate in zone
+    21:'high', // David Weekley — HIGH block booking, 610 lots
+    27:'high', // Rockhaven — STRONG, 738 lots, private = accessible
+    32:'high', // D.R. Horton — HIGH block booking (marathon play)
+    33:'high', // Smith Douglas — HIGH, new Fall 2026 communities now
+    3:'med',   // Arkan — MODERATE, 4 active roofs
+    9:'med',   // Elevation — STRONG, 19 lots, ARB angle
+    11:'med',  // Cotton States — STRONG, 38 lots, largest luxury pipeline
+    13:'med',  // Traton — STRONG, GAHBA member, Cherokee overlap
+    15:'med',  // Epic Homes — STRONG, sticky sub list
+    16:'med',  // Navkar — MODERATE, 3 active roofs
+    17:'med',  // Treetop — MODERATE, 55+ perfect fit
+    18:'med',  // Spencer Love — MODERATE, EarthCraft angle
+    19:'med',  // Loudermilk — MODERATE, highest prestige in quadrant
+    20:'med',  // Providence Group — STRONG, brand language fit
+    22:'med',  // Peachland — MODERATE, 4 active
+    28:'med',  // Hedgewood — STRONG, brand protection angle
+    29:'med',  // South Haven — MODERATE
+    30:'med',  // Bercher — STRONG, 9 UC, luxury-adjacent
+    6:'low',   // Fuqua — FUTURE, seed relationship
+    7:'low',   // Whitestone — FUTURE, earn PM first
+    10:'low',  // Tony Brown — FUTURE, succession in play
+    23:'low',  // Crownline — FUTURE, 100% referral
+    24:'low',  // Capital Design — FUTURE, 35 years
+    25:'low',  // White Oak — FUTURE, design-stage credibility first
+    31:'low',  // PLH Homes — FUTURE, ICF technical credibility first
+  };
+  builders.forEach(b=>{
+    const log=getLog(b.p);
+    if(!log.priority&&BASELINE_PRIORITY[b.p]){log.priority=BASELINE_PRIORITY[b.p];queueSaveLog(b.p);}
+  });
   // Seed Angle & Action from constants if not yet saved to Sheet
   builders.forEach(b=>{
     const log=getLog(b.p);
@@ -480,7 +529,10 @@ async function loadAll(){
   render();updateStats();populateRepFilter();
 }
 
-function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:''};return logs[p];}
+function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:''};return logs[p];}
+const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
+function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
+function setPriority(p,val,sel){getLog(p).priority=val;sel.style.cssText=priorityStyle(val);queueSaveLog(p);}
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
 function autosizeAll(){document.querySelectorAll('textarea.ei').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
@@ -573,12 +625,14 @@ function render(){
   const fz=document.getElementById('f-zone').value;
   const ft=document.getElementById('f-type').value;
   const fs=document.getElementById('f-status').value;
+  const fp=document.getElementById('f-priority').value;
   const fr=document.getElementById('f-rep').value;
   const filtered=builders.filter(b=>{
     const log=getLog(b.p);
     if(fz&&b.zone!==fz)return false;
     if(ft&&b.type!==ft)return false;
     if(fs&&log.status!==fs)return false;
+    if(fp&&log.priority!==fp)return false;
     if(fr==='__none__'&&log.rep)return false;
     if(fr&&fr!=='__none__'&&log.rep!==fr)return false;
     if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
@@ -595,6 +649,15 @@ function render(){
       <td class="col-freeze-2">
         <input class="ei" value="${esc(b.name)}" placeholder="Builder name" onblur="setBuilderInfo(${b.p},'name',this.value)" style="font-weight:600;font-size:12px;"/>
         <span class="badge ${b.type==='Luxury'?'badge-lux':'badge-vol'}" style="margin-top:3px;display:inline-block;">${b.type}</span>
+      </td>
+      <td>
+        <select class="fsel" onchange="setPriority(${b.p},this.value,this)" style="${priorityStyle(log.priority)}">
+          <option value="">— Priority —</option>
+          <option value="now" ${log.priority==='now'?'selected':''}>Now</option>
+          <option value="high" ${log.priority==='high'?'selected':''}>High</option>
+          <option value="med" ${log.priority==='med'?'selected':''}>Med</option>
+          <option value="low" ${log.priority==='low'?'selected':''}>Low</option>
+        </select>
       </td>
       <td style="font-size:11px;color:#888;">${b.zone}</td>
       <td>${renderContactsCell(b)}</td>
