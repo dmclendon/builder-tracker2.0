@@ -185,7 +185,7 @@ tr:hover td{background:#fafaf8;}
           <option value="visited">Site visit</option>
           <option value="office_visit">Office Visit</option>
           <option value="meeting">Meeting set</option>
-          <option value="approved">Approved vendor</option>
+
         </select>
         <button class="fp-btn" id="fp-now" onclick="togglePF('now',this)">Now</button>
         <button class="fp-btn" id="fp-high" onclick="togglePF('high',this)">High</button>
@@ -213,6 +213,7 @@ tr:hover td{background:#fafaf8;}
             <col style="width:200px">
             <col style="width:200px">
             <col style="width:200px">
+            <col style="width:200px">
             <col style="width:100px">
             <col style="width:260px">
             <col style="width:260px">
@@ -232,6 +233,7 @@ tr:hover td{background:#fafaf8;}
               <th>Assigned rep</th>
               <th class="th-email"><i class="ti ti-mail" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Email outreach</th>
               <th class="th-li"><i class="ti ti-brand-linkedin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>LinkedIn outreach</th>
+              <th><i class="ti ti-building" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Office visits</th>
               <th><i class="ti ti-map-pin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Site visits</th>
               <th>Status</th>
               <th>Last activity</th>
@@ -380,9 +382,9 @@ const ZONDA_LOTS={2:1752,5:451,8:1836,12:1411,13:276,14:113,21:610,26:155,27:738
 const ZONDA_PRICE={1:4149615,2:401312,5:701465,8:912992,12:586878,13:516416,14:845246,21:761046,26:1421787,27:326859,32:428442,33:358671};
 const ZONDA_SQFT={1:6033,2:2010,5:2392,8:3199,12:2507,13:2195,14:3963,21:2804,26:2162,27:2015,32:2442,33:2102};
 
-const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"replied",label:"Received Reply"},{val:"visited",label:"Site visit"},{val:"office_visit",label:"Office Visit"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
-const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",replied:"Received Reply",visited:"Site visit",office_visit:"Office Visit",meeting:"Meeting set",approved:"Approved vendor"};
-const LB_CLASS={none:"lb-none",contacted:"lb-contacted",replied:"lb-replied",visited:"lb-visited",office_visit:"lb-office-visit",meeting:"lb-meeting",approved:"lb-approved"};
+const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"replied",label:"Received Reply"},{val:"visited",label:"Site visit"},{val:"office_visit",label:"Office Visit"},{val:"meeting",label:"Meeting set"},];
+const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",replied:"Received Reply",visited:"Site visit",office_visit:"Office Visit",meeting:"Meeting set",};
+const LB_CLASS={none:"lb-none",contacted:"lb-contacted",replied:"lb-replied",visited:"lb-visited",office_visit:"lb-office-visit",meeting:"lb-meeting",};
 const REP_COLORS=[{bg:"#E6F1FB",color:"#0C447C"},{bg:"#E1F5EE",color:"#003DA5"},{bg:"#EEEDFE",color:"#3C3489"},{bg:"#FAEEDA",color:"#633806"},{bg:"#FAECE7",color:"#712B13"},{bg:"#FBEAF0",color:"#72243E"},{bg:"#EAF3DE",color:"#003DA5"},{bg:"#F1EFE8",color:"#444441"}];
 
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
@@ -427,17 +429,21 @@ function deleteNote(p,field,idx){
   log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
   queueSaveLog(p);render();
 }
+const OUTREACH_LABEL={emailNote:'Email outreach',liNote:'LinkedIn outreach',officeVisitNote:'Office visit',siteVisitNote:'Site visit'};
 function appendNote(p,inputEl,field){
   const text=inputEl.value.trim();if(!text)return;
   const log=getLog(p);
-  const entry=`[${fmtNoteTs()}] ${text}`;
+  const ts=fmtNoteTs();
+  const entry=`[${ts}] ${text}`;
   log[field]=log[field]?log[field]+'\n'+entry:entry;
-  if(['emailNote','liNote','siteVisitNote','notes'].includes(field))log.lastActivity=new Date().toISOString();
+  if(['emailNote','liNote','officeVisitNote','siteVisitNote','notes'].includes(field))log.lastActivity=new Date().toISOString();
+  if(OUTREACH_LABEL[field]){const sEntry=`[${ts}] ${OUTREACH_LABEL[field]}: ${text}`;log.statusLog=log.statusLog?log.statusLog+'\n'+sEntry:sEntry;}
   inputEl.value='';
   queueSaveLog(p);
   if(field==='notes')addAct(getB(p).name,'notes',text,log.rep);
   else if(field==='emailNote')addAct(getB(p).name,'emailNote',text,log.rep);
   else if(field==='liNote')addAct(getB(p).name,'liNote',text,log.rep);
+  else if(field==='officeVisitNote')addAct(getB(p).name,'officeVisitNote',text,log.rep);
   else if(field==='siteVisitNote')addAct(getB(p).name,'siteVisitNote',text,log.rep);
   render();
 }
@@ -538,6 +544,7 @@ async function loadAll(){
     if(!log.angle&&BUILDER_ANGLE[b.p]){log.angle=BUILDER_ANGLE[b.p];queueSaveLog(b.p);}
     if(!log.action&&BUILDER_ACTION[b.p]){log.action=BUILDER_ACTION[b.p];queueSaveLog(b.p);}
   });
+  restoreLocalAnnotationsB();
   // Sync Zonda lot counts — overrides any stale Sheet values
   Object.entries(ZONDA_LOTS).forEach(([p,lots])=>{
     const b=builders.find(x=>x.p===parseInt(p));
@@ -546,7 +553,7 @@ async function loadAll(){
   // Backfill Jun 3 2026 for any existing entries that have outreach/visit data but no lastActivity
   builders.forEach(b=>{
     const log=getLog(b.p);
-    if(!log.lastActivity&&(log.emailNote||log.liNote||log.siteVisitNote||log.notes)){
+    if(!log.lastActivity&&(log.emailNote||log.liNote||log.officeVisitNote||log.siteVisitNote||log.notes)){
       log.lastActivity=new Date(2026,5,3,12,0,0).toISOString();
       queueSaveLog(b.p);
     }
@@ -555,7 +562,10 @@ async function loadAll(){
   render();updateStats();populateRepFilter();
 }
 
-function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
+function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
+const LOCAL_FIELDS_B=['nextSteps','statusLog','officeVisitNote'];
+function saveLocalAnnotationsB(p){const log=getLog(p);try{LOCAL_FIELDS_B.forEach(f=>{localStorage.setItem(`bt_${f}_${p}`,log[f]||'');});}catch(e){}}
+function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});}catch(e){}});}
 const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
 function setPriority(p,val,sel){getLog(p).priority=val;sel.style.cssText=priorityStyle(val);queueSaveLog(p);}
@@ -577,13 +587,13 @@ function queueSaveLog(p){
   setSyncStatus('saving');clearTimeout(saveTimer);saveQueue[p]=true;
   saveTimer=setTimeout(async()=>{
     const ids=Object.keys(saveQueue);saveQueue={};
-    for(const id of ids){try{await apiPost({action:'saveLog',data:{builderId:id,...getLog(parseInt(id))}});}catch(e){}}
+    for(const id of ids){saveLocalAnnotationsB(parseInt(id));try{await apiPost({action:'saveLog',data:{builderId:id,...getLog(parseInt(id))}});}catch(e){}}
     setSyncStatus('ok');
   },800);
 }
 
 function addAct(builderName,field,newVal,rep){
-  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`};
+  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,officeVisitNote:`Office visit: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`};
   const entry={ts:nowStr(),day:todayKey(),dayLabel:todayStr(),msg:msgs[field]||`Updated: <strong>${builderName}</strong>`,field,status:field==='status'?newVal:null,builder:builderName,rep:rep||''};
   activity.push(entry);
   apiPost({action:'saveActivity',data:entry}).catch(()=>{});
@@ -723,6 +733,7 @@ function render(){
       </td>
       <td>${renderOutreachCell(b.p,'email')}</td>
       <td>${renderOutreachCell(b.p,'li')}</td>
+      <td>${renderLogHtml(parseNotes(log.officeVisitNote||''),`appendNote(${b.p},this,'officeVisitNote')`,`deleteNote(${b.p},'officeVisitNote',IDX)`)}</td>
       <td>${renderLogHtml(parseNotes(log.siteVisitNote),`appendNote(${b.p},this,'siteVisitNote')`,`deleteNote(${b.p},'siteVisitNote',IDX)`)}</td>
       <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select>${renderStatusLog(b.p,parseNotes(log.statusLog||''))}</td>
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
