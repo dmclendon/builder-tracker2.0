@@ -63,6 +63,11 @@ tr:hover td{background:#fafaf8;}
 .outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 6px;background:#fafaf8;color:#888;width:100%;outline:none;font-family:inherit;margin-top:4px;}
 .outreach-date:focus{border-color:#003DA5;background:#fff;color:#1a1a1a;}
 .note-sent-label{font-weight:600;color:#1a1a1a;}
+.fp-btn{font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:1px solid #e0e0de;background:#f5f5f3;color:#aaa;cursor:pointer;}
+.fp-btn.on-now{background:#D4A017;color:#fff;border-color:#D4A017;}
+.fp-btn.on-high{background:#C0392B;color:#fff;border-color:#C0392B;}
+.fp-btn.on-med{background:#F9E04B;color:#5a4a00;border-color:#c8b800;}
+.fp-btn.on-low{background:#bbb;color:#fff;border-color:#bbb;}
 .add-contact-btn{font-size:11px;color:#003DA5;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
 .add-contact-btn:hover{text-decoration:underline;}
 .contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
@@ -82,6 +87,8 @@ tr:hover td{background:#fafaf8;}
 .lb-none{background:#F1EFE8;color:#5F5E5A;}
 .lb-contacted{background:#FAEEDA;color:#633806;}
 .lb-visited{background:#E6F1FB;color:#0C447C;}
+.lb-replied{background:#EEEDFE;color:#3C3489;}
+.lb-office-visit{background:#FBE8F3;color:#7A1C58;}
 .lb-meeting{background:#E1F5EE;color:#003DA5;}
 .lb-approved{background:#EAF3DE;color:#003DA5;}
 .day-group{margin-bottom:1.25rem;}
@@ -104,6 +111,10 @@ tr:hover td{background:#fafaf8;}
 .note-text{font-size:12px;color:#1a1a1a;line-height:1.45;word-break:break-word;width:100%;}
 .note-del{background:none;border:none;cursor:pointer;color:#ddd;font-size:14px;padding:0;line-height:1;flex-shrink:0;margin-top:1px;}
 .note-del:hover{color:#A32D2D;}
+.note-check{background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:0;line-height:1;flex-shrink:0;margin-top:1px;}
+.note-check:hover{color:#2e7d32;}
+.note-done .note-text{text-decoration:line-through;color:#bbb;}
+.note-done .note-ts{color:#ddd;}
 .note-add{margin-top:5px;width:100%;}
 .note-add input{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:5px 8px;width:100%;background:#fafaf8;outline:none;font-family:inherit;color:#1a1a1a;}
 .note-add input:focus{border-color:#003DA5;background:#fff;}
@@ -170,17 +181,16 @@ tr:hover td{background:#fafaf8;}
           <option value="">All statuses</option>
           <option value="none">Not contacted</option>
           <option value="contacted">Contacted</option>
-          <option value="visited">Site visited</option>
+          <option value="replied">Received Reply</option>
+          <option value="visited">Site visit</option>
+          <option value="office_visit">Office Visit</option>
           <option value="meeting">Meeting set</option>
           <option value="approved">Approved vendor</option>
         </select>
-        <select id="f-priority" onchange="render()">
-          <option value="">All priorities</option>
-          <option value="now">Now</option>
-          <option value="high">High</option>
-          <option value="med">Med</option>
-          <option value="low">Low</option>
-        </select>
+        <button class="fp-btn" id="fp-now" onclick="togglePF('now',this)">Now</button>
+        <button class="fp-btn" id="fp-high" onclick="togglePF('high',this)">High</button>
+        <button class="fp-btn" id="fp-med" onclick="togglePF('med',this)">Med</button>
+        <button class="fp-btn" id="fp-low" onclick="togglePF('low',this)">Low</button>
         <select id="f-rep" onchange="render()">
           <option value="">All reps</option>
         </select>
@@ -191,7 +201,7 @@ tr:hover td{background:#fafaf8;}
           <colgroup>
             <col style="width:28px">
             <col style="width:210px">
-            <col style="width:100px">
+            <col style="width:220px">
             <col style="width:110px">
             <col style="width:210px">
             <col style="width:210px">
@@ -202,7 +212,7 @@ tr:hover td{background:#fafaf8;}
             <col style="width:200px">
             <col style="width:200px">
             <col style="width:200px">
-            <col style="width:120px">
+            <col style="width:200px">
             <col style="width:100px">
             <col style="width:260px">
             <col style="width:260px">
@@ -370,9 +380,9 @@ const ZONDA_LOTS={2:1752,5:451,8:1836,12:1411,13:276,14:113,21:610,26:155,27:738
 const ZONDA_PRICE={1:4149615,2:401312,5:701465,8:912992,12:586878,13:516416,14:845246,21:761046,26:1421787,27:326859,32:428442,33:358671};
 const ZONDA_SQFT={1:6033,2:2010,5:2392,8:3199,12:2507,13:2195,14:3963,21:2804,26:2162,27:2015,32:2442,33:2102};
 
-const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"visited",label:"Site visited"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
-const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",visited:"Site visited",meeting:"Meeting set",approved:"Approved vendor"};
-const LB_CLASS={none:"lb-none",contacted:"lb-contacted",visited:"lb-visited",meeting:"lb-meeting",approved:"lb-approved"};
+const STATUS_OPTS=[{val:"none",label:"Not contacted"},{val:"contacted",label:"Contacted"},{val:"replied",label:"Received Reply"},{val:"visited",label:"Site visit"},{val:"office_visit",label:"Office Visit"},{val:"meeting",label:"Meeting set"},{val:"approved",label:"Approved vendor"}];
+const STATUS_LABEL={none:"Not contacted",contacted:"Contacted",replied:"Received Reply",visited:"Site visit",office_visit:"Office Visit",meeting:"Meeting set",approved:"Approved vendor"};
+const LB_CLASS={none:"lb-none",contacted:"lb-contacted",replied:"lb-replied",visited:"lb-visited",office_visit:"lb-office-visit",meeting:"lb-meeting",approved:"lb-approved"};
 const REP_COLORS=[{bg:"#E6F1FB",color:"#0C447C"},{bg:"#E1F5EE",color:"#003DA5"},{bg:"#EEEDFE",color:"#3C3489"},{bg:"#FAEEDA",color:"#633806"},{bg:"#FAECE7",color:"#712B13"},{bg:"#FBEAF0",color:"#72243E"},{bg:"#EAF3DE",color:"#003DA5"},{bg:"#F1EFE8",color:"#444441"}];
 
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
@@ -398,6 +408,18 @@ function fmtNoteTs(){
 function renderLogHtml(entries,appendCmd,delCmd){
   const rows=entries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="${delCmd.replace('IDX',i)}" title="Delete entry">×</button></div>`).join('');
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){${appendCmd};}"/></div></div>`;
+}
+function renderNextStepsHtml(p,entries){
+  const rows=entries.map((e,i)=>{const done=e.text.startsWith('[DONE] ');const displayText=done?e.text.slice(7):e.text;return`<div class="note-entry${done?' note-done':''}"><div class="note-body"><span class="note-text">${esc(displayText)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-check" onclick="checkNote(${p},'nextSteps',${i})" title="Mark done">✓</button><button class="note-del" onclick="deleteNote(${p},'nextSteps',${i})" title="Delete">×</button></div>`;}).join('');
+  return`<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Next Steps</div><div class="notes-log">${rows}<div class="note-add"><input placeholder="Next step…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'nextSteps');}"/></div></div>`;
+}
+function checkNote(p,field,idx){
+  const log=getLog(p);const entries=parseNotes(log[field]||'');
+  if(!entries[idx])return;
+  const t=entries[idx].text;
+  entries[idx].text=t.startsWith('[DONE] ')?t.slice(7):'[DONE] '+t;
+  log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
+  queueSaveLog(p);render();
 }
 function deleteNote(p,field,idx){
   const log=getLog(p);const entries=parseNotes(log[field]);
@@ -533,10 +555,16 @@ async function loadAll(){
   render();updateStats();populateRepFilter();
 }
 
-function getLog(p){if(!logs[p])logs[p]={status:'none',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:''};return logs[p];}
+function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
 const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
 function setPriority(p,val,sel){getLog(p).priority=val;sel.style.cssText=priorityStyle(val);queueSaveLog(p);}
+const activePF=new Set();
+function togglePF(val,btn){
+  if(activePF.has(val)){activePF.delete(val);btn.className='fp-btn';}
+  else{activePF.add(val);btn.className=`fp-btn on-${val}`;}
+  render();
+}
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
 function autosizeAll(){document.querySelectorAll('textarea.ei').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
@@ -561,7 +589,23 @@ function addAct(builderName,field,newVal,rep){
   apiPost({action:'saveActivity',data:entry}).catch(()=>{});
 }
 
-function setStatus(p,v){const old=getLog(p).status;getLog(p).status=v;queueSaveLog(p);addAct(getB(p).name,'status',v,getLog(p).rep);}
+function setStatus(p,v){
+  const log=getLog(p);log.status=v;
+  const entry=`[${fmtNoteTs()}] ${STATUS_LABEL[v]||v}`;
+  log.statusLog=log.statusLog?log.statusLog+'\n'+entry:entry;
+  queueSaveLog(p);addAct(getB(p).name,'status',v,log.rep);render();
+}
+function renderStatusLog(p,entries){
+  if(!entries.length)return'';
+  const rows=entries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteStatusEntry(${p},${i})" title="Delete">×</button></div>`).join('');
+  return`<div style="margin-top:5px;"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">History</div><div class="notes-log">${rows}</div></div>`;
+}
+function deleteStatusEntry(p,idx){
+  const log=getLog(p);const entries=parseNotes(log.statusLog||'');
+  entries.splice(idx,1);
+  log.statusLog=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
+  queueSaveLog(p);render();
+}
 function setDate(p,v){getLog(p).date=v;queueSaveLog(p);addAct(getB(p).name,'date',v,getLog(p).rep);}
 function setRep(p,v){getLog(p).rep=v;queueSaveLog(p);addAct(getB(p).name,'rep',v,v);render();}
 function setEmailDate(p,v){getLog(p).emailDate=v;queueSaveLog(p);if(v)addAct(getB(p).name,'emailDate',v,getLog(p).rep);render();}
@@ -579,7 +623,7 @@ function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===
 
 function updateStats(){
   document.getElementById('s-none').textContent=builders.filter(b=>getLog(b.p).status==='none').length;
-  document.getElementById('s-prog').textContent=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  document.getElementById('s-prog').textContent=builders.filter(b=>['contacted','replied','visited','office_visit'].includes(getLog(b.p).status)).length;
   document.getElementById('s-done').textContent=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
 }
 
@@ -629,14 +673,14 @@ function render(){
   const fz=document.getElementById('f-zone').value;
   const ft=document.getElementById('f-type').value;
   const fs=document.getElementById('f-status').value;
-  const fp=document.getElementById('f-priority').value;
+  const fp=activePF;
   const fr=document.getElementById('f-rep').value;
   const filtered=builders.filter(b=>{
     const log=getLog(b.p);
     if(fz&&b.zone!==fz)return false;
     if(ft&&b.type!==ft)return false;
     if(fs&&log.status!==fs)return false;
-    if(fp&&log.priority!==fp)return false;
+    if(fp.size>0&&!fp.has(log.priority||''))return false;
     if(fr==='__none__'&&log.rep)return false;
     if(fr&&fr!=='__none__'&&log.rep!==fr)return false;
     if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
@@ -662,6 +706,7 @@ function render(){
           <option value="med" ${log.priority==='med'?'selected':''}>Med</option>
           <option value="low" ${log.priority==='low'?'selected':''}>Low</option>
         </select>
+        <div style="margin-top:5px;">${renderNextStepsHtml(b.p,parseNotes(log.nextSteps||''))}</div>
       </td>
       <td style="font-size:11px;color:#888;">${b.zone}</td>
       <td>${renderContactsCell(b)}</td>
@@ -679,7 +724,7 @@ function render(){
       <td>${renderOutreachCell(b.p,'email')}</td>
       <td>${renderOutreachCell(b.p,'li')}</td>
       <td>${renderLogHtml(parseNotes(log.siteVisitNote),`appendNote(${b.p},this,'siteVisitNote')`,`deleteNote(${b.p},'siteVisitNote',IDX)`)}</td>
-      <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select></td>
+      <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select>${renderStatusLog(b.p,parseNotes(log.statusLog||''))}</td>
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
       <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#003DA5;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
@@ -713,7 +758,7 @@ function renderReport(){
   const todayCount=(grouped[todayKey()]||{entries:[]}).entries.length;
   const touched=new Set(activity.map(a=>a.builder)).size;
   const none=builders.filter(b=>getLog(b.p).status==='none').length;
-  const prog=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  const prog=builders.filter(b=>['contacted','replied','visited','office_visit'].includes(getLog(b.p).status)).length;
   const done=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
   const emailSent=builders.filter(b=>getLog(b.p).emailDate).length;
   const liSent=builders.filter(b=>getLog(b.p).liDate).length;
@@ -752,7 +797,7 @@ function copyReport(){
   const days=Object.keys(grouped).sort().reverse();
   const todayCount=(grouped[todayKey()]||{entries:[]}).entries.length;
   const none=builders.filter(b=>getLog(b.p).status==='none').length;
-  const prog=builders.filter(b=>['contacted','visited'].includes(getLog(b.p).status)).length;
+  const prog=builders.filter(b=>['contacted','replied','visited','office_visit'].includes(getLog(b.p).status)).length;
   const done=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
   const emailSent=builders.filter(b=>getLog(b.p).emailDate).length;
   const liSent=builders.filter(b=>getLog(b.p).liDate).length;
