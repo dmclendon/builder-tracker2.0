@@ -865,22 +865,75 @@ loadAll();
 </style>
 <script>
 function printView(){
-  const filtered=Array.from(document.querySelectorAll('#tbody tr'));
+  // Re-apply current filters to get the same builders shown on screen
+  const search=document.getElementById('search').value.toLowerCase();
+  const ft=document.getElementById('f-type').value;
+  const fs=document.getElementById('f-status').value;
+  const fr=document.getElementById('f-rep').value;
+  const filtered=builders.filter(b=>{
+    const log=getLog(b.p);
+    if(activeZF.size>0&&!activeZF.has(b.zone))return false;
+    if(ft&&b.type!==ft)return false;
+    if(fs&&log.status!==fs)return false;
+    if(activePF.size>0&&!activePF.has(log.priority||''))return false;
+    if(fr==='__none__'&&log.rep)return false;
+    if(fr&&fr!=='__none__'&&log.rep!==fr)return false;
+    if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
+    return true;
+  });
   if(!filtered.length){alert('No rows to print.');return;}
-  const headers=Array.from(document.querySelectorAll('thead th')).map(th=>th.innerText.trim());
-  let tableHtml='<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:11px;font-family:sans-serif;">';
-  tableHtml+='<thead style="background:#1a3a6b;color:#fff;"><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr></thead>';
-  tableHtml+='<tbody>';
-  filtered.forEach(row=>{
-    const cells=Array.from(row.querySelectorAll('td'));
-    tableHtml+='<tr>'+cells.map(td=>`<td style="vertical-align:top;padding:4px 6px;">${td.innerText.trim()}</td>`).join('')+'</tr>';
+
+  const statusLabel=v=>(STATUS_OPTS.find(o=>o.val===v)||{label:v||'—'}).label;
+  const priorityLabel=v=>({now:'Now',high:'High',med:'Med',low:'Low'}[v]||v||'—');
+  const notesText=raw=>parseNotes(raw||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—';
+
+  const cols=[
+    {h:'#',        v:b=>b.p},
+    {h:'Builder',  v:b=>b.name||'—'},
+    {h:'Type',     v:b=>b.type||'—'},
+    {h:'Priority', v:b=>priorityLabel(getLog(b.p).priority)},
+    {h:'Zone',     v:b=>b.zone||'—'},
+    {h:'Contacts', v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
+    {h:'Address / Website', v:b=>[b.address,b.website].filter(Boolean).join('\n')||'—'},
+    {h:'Vacant Lots', v:b=>b.lots!=null?b.lots:'—'},
+    {h:'Assigned Rep', v:b=>getLog(b.p).rep||'—'},
+    {h:'Status',   v:b=>statusLabel(getLog(b.p).status)},
+    {h:'Last Activity', v:b=>{const d=getLog(b.p).lastActivity;return d?new Date(d).toLocaleDateString():'—';}},
+    {h:'Email Outreach', v:b=>{const l=getLog(b.p);const d=l.emailDate?new Date(l.emailDate).toLocaleDateString():'';return d?(d+(l.emailNote?'\n'+notesText(l.emailNote):'')):(l.emailNote?notesText(l.emailNote):'—');}},
+    {h:'LinkedIn Outreach', v:b=>{const l=getLog(b.p);const d=l.liDate?new Date(l.liDate).toLocaleDateString():'';return d?(d+(l.liNote?'\n'+notesText(l.liNote):'')):(l.liNote?notesText(l.liNote):'—');}},
+    {h:'Office Visits', v:b=>notesText(getLog(b.p).officeVisitNote)},
+    {h:'Site Visits', v:b=>notesText(getLog(b.p).siteVisitNote)},
+    {h:'Phone Calls', v:b=>notesText(getLog(b.p).phoneNote)},
+    {h:'Angle',    v:b=>getLog(b.p).angle||'—'},
+    {h:'Action',   v:b=>getLog(b.p).action||'—'},
+    {h:'Next Steps', v:b=>getLog(b.p).nextSteps||'—'},
+    {h:'General Notes', v:b=>notesText(getLog(b.p).notes)},
+  ];
+
+  const esc2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  let tableHtml='<table><thead><tr>'+cols.map(c=>`<th>${esc2(c.h)}</th>`).join('')+'</tr></thead><tbody>';
+  filtered.forEach(b=>{
+    tableHtml+='<tr>'+cols.map(c=>`<td>${esc2(c.v(b))}</td>`).join('')+'</tr>';
   });
   tableHtml+='</tbody></table>';
-  const win=window.open('','_blank','width=1200,height=800');
-  win.document.write(`<!DOCTYPE html><html><head><title>Builder Tracker — Print</title><style>body{font-family:sans-serif;padding:16px;}h2{margin-bottom:8px;}table{page-break-inside:auto;}tr{page-break-inside:avoid;}</style></head><body><h2>Aidan's Home Services — Builder Tracker</h2><p style="font-size:11px;color:#888;margin-bottom:12px;">Printed ${new Date().toLocaleString()} &nbsp;|&nbsp; ${filtered.length} builder(s)</p>${tableHtml}</body></html>`);
+
+  const win=window.open('','_blank','width=1400,height=900');
+  win.document.write(`<!DOCTYPE html><html><head><title>Builder Tracker — Print</title><style>
+    body{font-family:sans-serif;padding:16px;font-size:11px;}
+    h2{margin-bottom:4px;color:#1a3a6b;}
+    p.meta{font-size:10px;color:#888;margin-bottom:12px;}
+    table{border-collapse:collapse;width:100%;}
+    th{background:#1a3a6b;color:#fff;text-align:left;padding:5px 7px;font-size:10px;white-space:nowrap;}
+    td{border:1px solid #ddd;padding:4px 7px;vertical-align:top;white-space:pre-wrap;word-break:break-word;}
+    tr:nth-child(even) td{background:#f7f9fc;}
+    @media print{@page{size:landscape;margin:1cm;}}
+  </style></head><body>
+  <h2>Aidan's Home Services — Builder Tracker</h2>
+  <p class="meta">Printed ${new Date().toLocaleString()} &nbsp;|&nbsp; ${filtered.length} builder(s)</p>
+  ${tableHtml}
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
   win.document.close();
-  win.focus();
-  win.print();
 }
 </script>
 </body>
