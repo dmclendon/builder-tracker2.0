@@ -236,6 +236,7 @@ tr:hover td{background:#fafaf8;}
               <th class="th-li"><i class="ti ti-brand-linkedin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>LinkedIn outreach</th>
               <th><i class="ti ti-building" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Office visits</th>
               <th><i class="ti ti-map-pin" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Site visits</th>
+              <th><i class="ti ti-phone" style="font-size:11px;vertical-align:-1px;margin-right:3px;"></i>Phone calls</th>
               <th>Status</th>
               <th>Last activity</th>
               <th>Angle</th>
@@ -430,14 +431,14 @@ function deleteNote(p,field,idx){
   log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
   queueSaveLog(p);render();
 }
-const OUTREACH_LABEL={emailNote:'Email outreach',liNote:'LinkedIn outreach',officeVisitNote:'Office visit',siteVisitNote:'Site visit'};
+const OUTREACH_LABEL={emailNote:'Email outreach',liNote:'LinkedIn outreach',officeVisitNote:'Office visit',siteVisitNote:'Site visit',phoneNote:'Phone call'};
 function appendNote(p,inputEl,field){
   const text=inputEl.value.trim();if(!text)return;
   const log=getLog(p);
   const ts=fmtNoteTs();
   const entry=`[${ts}] ${text}`;
   log[field]=log[field]?log[field]+'\n'+entry:entry;
-  if(['emailNote','liNote','officeVisitNote','siteVisitNote','notes'].includes(field))log.lastActivity=new Date().toISOString();
+  if(['emailNote','liNote','officeVisitNote','siteVisitNote','phoneNote','notes'].includes(field))log.lastActivity=new Date().toISOString();
   if(OUTREACH_LABEL[field]){const sEntry=`[${ts}] ${OUTREACH_LABEL[field]}: ${text}`;log.statusLog=log.statusLog?log.statusLog+'\n'+sEntry:sEntry;}
   inputEl.value='';
   queueSaveLog(p);
@@ -446,6 +447,7 @@ function appendNote(p,inputEl,field){
   else if(field==='liNote')addAct(getB(p).name,'liNote',text,log.rep);
   else if(field==='officeVisitNote')addAct(getB(p).name,'officeVisitNote',text,log.rep);
   else if(field==='siteVisitNote')addAct(getB(p).name,'siteVisitNote',text,log.rep);
+  else if(field==='phoneNote')addAct(getB(p).name,'phoneNote',text,log.rep);
   render();
 }
 
@@ -554,7 +556,7 @@ async function loadAll(){
   // Backfill Jun 3 2026 for any existing entries that have outreach/visit data but no lastActivity
   builders.forEach(b=>{
     const log=getLog(b.p);
-    if(!log.lastActivity&&(log.emailNote||log.liNote||log.officeVisitNote||log.siteVisitNote||log.notes)){
+    if(!log.lastActivity&&(log.emailNote||log.liNote||log.officeVisitNote||log.siteVisitNote||log.phoneNote||log.notes)){
       log.lastActivity=new Date(2026,5,3,12,0,0).toISOString();
       queueSaveLog(b.p);
     }
@@ -563,7 +565,7 @@ async function loadAll(){
   render();updateStats();populateRepFilter();
 }
 
-function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
+function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',phoneNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
 const LOCAL_FIELDS_B=['nextSteps','statusLog','officeVisitNote'];
 function saveLocalAnnotationsB(p){const log=getLog(p);try{LOCAL_FIELDS_B.forEach(f=>{localStorage.setItem(`bt_${f}_${p}`,log[f]||'');});}catch(e){}}
 function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});}catch(e){}});}
@@ -736,6 +738,7 @@ function render(){
       <td>${renderOutreachCell(b.p,'li')}</td>
       <td>${renderLogHtml(parseNotes(log.officeVisitNote||''),`appendNote(${b.p},this,'officeVisitNote')`,`deleteNote(${b.p},'officeVisitNote',IDX)`)}</td>
       <td>${renderLogHtml(parseNotes(log.siteVisitNote),`appendNote(${b.p},this,'siteVisitNote')`,`deleteNote(${b.p},'siteVisitNote',IDX)`)}</td>
+      <td>${renderLogHtml(parseNotes(log.phoneNote||''),`appendNote(${b.p},this,'phoneNote')`,`deleteNote(${b.p},'phoneNote',IDX)`)}</td>
       <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select>${renderStatusLog(b.p,parseNotes(log.statusLog||''))}</td>
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
