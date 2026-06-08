@@ -69,6 +69,7 @@ tr:hover td{background:#fafaf8;}
 .fp-btn.on-high{background:#C0392B;color:#fff;border-color:#C0392B;}
 .fp-btn.on-med{background:#F9E04B;color:#5a4a00;border-color:#c8b800;}
 .fp-btn.on-low{background:#bbb;color:#fff;border-color:#bbb;}
+.fp-btn.on-zone{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
 .add-contact-btn{font-size:11px;color:#003DA5;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
 .add-contact-btn:hover{text-decoration:underline;}
 .contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
@@ -163,16 +164,13 @@ tr:hover td{background:#fafaf8;}
     <div class="card">
       <div class="filters">
         <input type="text" id="search" placeholder="Search builder, contact…" oninput="render()"/>
-        <select id="f-zone" onchange="render()">
-          <option value="">All zones</option>
-          <option>N. Alpharetta / Milton</option>
-          <option>N. Cumming / Forsyth</option>
-          <option>Northwest Marietta / Woodstock</option>
-          <option>Northeast Johns Creek</option>
-          <option>Central / ITP Buckhead</option>
-          <option>South / Newnan / Hoschton</option>
-          <option>East Gwinnett</option>
-        </select>
+        <button class="fp-btn fz-btn" onclick="toggleZF('N. Alpharetta / Milton',this)">N. Alpharetta / Milton</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('N. Cumming / Forsyth',this)">N. Cumming / Forsyth</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('Northwest Marietta / Woodstock',this)">NW Marietta / Woodstock</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('Northeast Johns Creek',this)">NE Johns Creek</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('Central / ITP Buckhead',this)">Central / ITP Buckhead</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('South / Newnan / Hoschton',this)">South / Newnan / Hoschton</button>
+        <button class="fp-btn fz-btn" onclick="toggleZF('East Gwinnett',this)">East Gwinnett</button>
         <select id="f-type" onchange="render()">
           <option value="">All types</option>
           <option value="Luxury">Luxury</option>
@@ -579,6 +577,12 @@ function togglePF(val,btn){
   else{activePF.add(val);btn.className=`fp-btn on-${val}`;}
   render();
 }
+const activeZF=new Set();
+function toggleZF(val,btn){
+  if(activeZF.has(val)){activeZF.delete(val);btn.className='fp-btn fz-btn';}
+  else{activeZF.add(val);btn.className='fp-btn fz-btn on-zone';}
+  render();
+}
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
 function autosizeAll(){document.querySelectorAll('textarea.ei').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
@@ -696,14 +700,13 @@ function renderPhoneCallCell(p){
 }
 function render(){
   const search=document.getElementById('search').value.toLowerCase();
-  const fz=document.getElementById('f-zone').value;
   const ft=document.getElementById('f-type').value;
   const fs=document.getElementById('f-status').value;
   const fp=activePF;
   const fr=document.getElementById('f-rep').value;
   const filtered=builders.filter(b=>{
     const log=getLog(b.p);
-    if(fz&&b.zone!==fz)return false;
+    if(activeZF.size>0&&!activeZF.has(b.zone))return false;
     if(ft&&b.type!==ft)return false;
     if(fs&&log.status!==fs)return false;
     if(fp.size>0&&!fp.has(log.priority||''))return false;
