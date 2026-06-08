@@ -682,6 +682,18 @@ function renderOutreachCell(p,type){
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'${field}');}"/></div></div>`;
 }
 
+function renderSiteVisitCell(p){
+  const log=getLog(p);
+  const noteEntries=parseNotes(log.siteVisitNote||'');
+  const rows=noteEntries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'siteVisitNote',${i})" title="Delete entry">×</button></div>`).join('');
+  return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'siteVisitNote');}"/></div></div>`;
+}
+function renderPhoneCallCell(p){
+  const log=getLog(p);
+  const noteEntries=parseNotes(log.phoneNote||'');
+  const rows=noteEntries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'phoneNote',${i})" title="Delete entry">×</button></div>`).join('');
+  return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'phoneNote');}"/></div></div>`;
+}
 function render(){
   const search=document.getElementById('search').value.toLowerCase();
   const fz=document.getElementById('f-zone').value;
@@ -738,8 +750,8 @@ function render(){
       <td>${renderOutreachCell(b.p,'email')}</td>
       <td>${renderOutreachCell(b.p,'li')}</td>
       <td>${renderLogHtml(parseNotes(log.officeVisitNote||''),`appendNote(${b.p},this,'officeVisitNote')`,`deleteNote(${b.p},'officeVisitNote',IDX)`)}</td>
-      <td>${renderLogHtml(parseNotes(log.siteVisitNote),`appendNote(${b.p},this,'siteVisitNote')`,`deleteNote(${b.p},'siteVisitNote',IDX)`)}</td>
-      <td>${renderLogHtml(parseNotes(log.phoneNote||''),`appendNote(${b.p},this,'phoneNote')`,`deleteNote(${b.p},'phoneNote',IDX)`)}</td>
+      <td>${renderSiteVisitCell(b.p)}</td>
+      <td>${renderPhoneCallCell(b.p)}</td>
       <td><select class="fsel" onchange="setStatus(${b.p},this.value)">${statOpts}</select>${renderStatusLog(b.p,parseNotes(log.statusLog||''))}</td>
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
