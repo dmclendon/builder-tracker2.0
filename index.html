@@ -922,12 +922,13 @@ const PRINT_COLS=[
   {h:'General Notes',     v:b=>parseNotes(getLog(b.p).notes||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
 ];
 // remember checked state across opens
-const printColEnabled=Object.fromEntries(PRINT_COLS.map(c=>[c.h,true]));
+var printColEnabled=Object.fromEntries(PRINT_COLS.map(c=>[c.h,true]));
+function togglePrintCol(h,checked){printColEnabled[h]=checked;}
 
 function printView(){
   // build checkbox grid
   const grid=document.getElementById('print-col-grid');
-  grid.innerHTML=PRINT_COLS.map(c=>`<label><input type="checkbox" onchange="printColEnabled[${JSON.stringify(c.h)}]=this.checked" ${printColEnabled[c.h]?'checked':''}> ${c.h}</label>`).join('');
+  grid.innerHTML=PRINT_COLS.map(c=>`<label><input type="checkbox" onchange="togglePrintCol(${JSON.stringify(c.h)},this.checked)" ${printColEnabled[c.h]?'checked':''}> ${c.h}</label>`).join('');
   document.getElementById('print-overlay').style.display='flex';
 }
 function closePrintDialog(){document.getElementById('print-overlay').style.display='none';}
