@@ -605,6 +605,7 @@ const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
 function setPriority(p,val,sel){getLog(p).priority=val;sel.style.cssText=priorityStyle(val);queueSaveLog(p);}
 const activePF=new Set();
+let lastFiltered=[];
 function togglePF(val,btn){
   if(activePF.has(val)){activePF.delete(val);btn.className='fp-btn';}
   else{activePF.add(val);btn.className=`fp-btn on-${val}`;}
@@ -737,7 +738,7 @@ function render(){
   const fs=document.getElementById('f-status').value;
   const fp=activePF;
   const fr=document.getElementById('f-rep').value;
-  const filtered=builders.filter(b=>{
+  lastFiltered=builders.filter(b=>{
     const log=getLog(b.p);
     if(activeZF.size>0&&!activeZF.has(b.zone))return false;
     if(ft&&b.type!==ft)return false;
@@ -749,6 +750,7 @@ function render(){
     return true;
   });
   const log_=p=>getLog(p);
+  const filtered=lastFiltered;
   document.getElementById('tbody').innerHTML=filtered.map(b=>{
 
     const log=log_(b.p);
@@ -935,21 +937,7 @@ function setPrintAll(on){
 }
 function executePrint(){
   closePrintDialog();
-  const search=document.getElementById('search').value.toLowerCase();
-  const ft=document.getElementById('f-type').value;
-  const fs=document.getElementById('f-status').value;
-  const fr=document.getElementById('f-rep').value;
-  const filtered=builders.filter(b=>{
-    const log=getLog(b.p);
-    if(activeZF.size>0&&!activeZF.has(b.zone))return false;
-    if(ft&&b.type!==ft)return false;
-    if(fs&&log.status!==fs)return false;
-    if(activePF.size>0&&!activePF.has(log.priority||''))return false;
-    if(fr==='__none__'&&log.rep)return false;
-    if(fr&&fr!=='__none__'&&log.rep!==fr)return false;
-    if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
-    return true;
-  });
+  const filtered=lastFiltered;
   if(!filtered.length){alert('No rows to print.');return;}
   const cols=PRINT_COLS.filter(c=>printColEnabled[c.h]);
   if(!cols.length){alert('Select at least one column.');printView();return;}
