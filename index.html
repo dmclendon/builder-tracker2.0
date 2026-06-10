@@ -1009,6 +1009,7 @@ function addBuilderSiteAddress(p){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
   b.siteAddresses.push('');
+  addAct(b.name,'siteAddresses','(new address added)',getLog(p).rep);
   saveLocalAnnotationsB(p);
   render();
   setTimeout(()=>{const rows=document.querySelectorAll(`[data-bsa="${p}"]`);if(rows.length){const ta=rows[rows.length-1].querySelector('textarea');if(ta)ta.focus();}},50);
@@ -1016,7 +1017,9 @@ function addBuilderSiteAddress(p){
 function removeBuilderSiteAddress(p,idx){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
+  const removed=b.siteAddresses[idx]||'(empty)';
   b.siteAddresses.splice(idx,1);
+  addAct(b.name,'siteAddresses','Removed: '+removed,getLog(p).rep);
   saveLocalAnnotationsB(p);
   saveSiteAddresses(p);render();
 }
@@ -1072,6 +1075,9 @@ function saveModal(){
   const initNotes=document.getElementById('m-notes').value.trim();
   if(initNotes){logs[p].notes=JSON.stringify([{text:initNotes,ts:nowStr(),day:todayKey()}]);}
   addAct(name,'status','none','');
+  addAct(name,'contact','New builder added','');
+  if(newB.zone)addAct(name,'zone',newB.zone,'');
+  if(newB.address)addAct(name,'address',newB.address,'');
   apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,lots:newB.lots,siteAddresses:[],type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
   apiPost({action:'saveContacts',data:{builderId:p,contacts:newB.contacts}}).catch(()=>{});
   apiPost({action:'saveLog',data:{builderId:p,log:logs[p]}}).catch(()=>{});
@@ -1080,6 +1086,7 @@ function saveModal(){
 function deleteBuilder(p){
   const b=getB(p);if(!b)return;
   if(!confirm(`Delete ${b.name}? This cannot be undone.`))return;
+  addAct(b.name,'status','DELETED','');
   builders=builders.filter(x=>x.p!==p);
   apiPost({action:'deleteBuilder',data:{builderId:p}}).catch(()=>{});
   render();updateStats();showToast(`${b.name} deleted.`);
