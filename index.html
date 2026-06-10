@@ -618,8 +618,18 @@ async function loadAll(){
     }
     if(data.builderInfo){
       Object.entries(data.builderInfo).forEach(([bid,info])=>{
-        const b=builders.find(x=>String(x.p)===String(bid));
-        if(b){if(info.name)b.name=info.name;if(info.address)b.address=info.address;if(info.website!==undefined)b.website=info.website;if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;}
+        let b=builders.find(x=>String(x.p)===String(bid));
+        if(!b){
+          // Builder exists in sheet but not in DEFAULT_BUILDERS — add it dynamically
+          b={p:parseInt(bid)||bid,name:info.name||'',type:info.type||'Luxury',zone:info.zone||'',address:info.address||'',website:info.website||'',lots:info.lots===''||info.lots===null||info.lots===undefined?null:info.lots,contacts:[{name:'',title:'',phone:'',email:'',linkedin:''}],siteAddresses:[]};
+          builders.push(b);
+        } else {
+          if(info.name)b.name=info.name;
+          if(info.address)b.address=info.address;
+          if(info.website!==undefined)b.website=info.website;
+          if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;
+        }
+        if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;
       });
     }
     setSyncStatus('ok');
@@ -692,8 +702,8 @@ async function loadAll(){
 
 function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',phoneNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
 const LOCAL_FIELDS_B=['nextSteps','statusLog','officeVisitNote'];
-function saveLocalAnnotationsB(p){const log=getLog(p);try{LOCAL_FIELDS_B.forEach(f=>{localStorage.setItem(`bt_${f}_${p}`,log[f]||'');});}catch(e){}}
-function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});}catch(e){}});}
+function saveLocalAnnotationsB(p){const log=getLog(p);const b=getB(p);try{LOCAL_FIELDS_B.forEach(f=>{localStorage.setItem(`bt_${f}_${p}`,log[f]||'');});if(b)localStorage.setItem(`bt_siteAddresses_${p}`,JSON.stringify(b.siteAddresses||[]));}catch(e){}}
+function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});const sa=localStorage.getItem(`bt_siteAddresses_${b.p}`);if(sa){try{const parsed=JSON.parse(sa);if(Array.isArray(parsed)&&parsed.length)b.siteAddresses=parsed;}catch(e){}};}catch(e){}});}
 const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
 function setPriority(p,val,sel){const b=getB(p);getLog(p).priority=val;sel.style.cssText=priorityStyle(val);if(b)addAct(b.name,'priority',val,getLog(p).rep);queueSaveLog(p);}
@@ -999,6 +1009,7 @@ function addBuilderSiteAddress(p){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
   b.siteAddresses.push('');
+  saveLocalAnnotationsB(p);
   render();
   setTimeout(()=>{const rows=document.querySelectorAll(`[data-bsa="${p}"]`);if(rows.length){const ta=rows[rows.length-1].querySelector('textarea');if(ta)ta.focus();}},50);
 }
@@ -1006,6 +1017,7 @@ function removeBuilderSiteAddress(p,idx){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
   b.siteAddresses.splice(idx,1);
+  saveLocalAnnotationsB(p);
   saveSiteAddresses(p);render();
 }
 function setBuilderSiteAddress(p,idx,v){
@@ -1013,6 +1025,7 @@ function setBuilderSiteAddress(p,idx,v){
   if(!b.siteAddresses)b.siteAddresses=[];
   b.siteAddresses[idx]=v;
   if(v.trim())addAct(b.name,'siteAddresses',v,getLog(p).rep);
+  saveLocalAnnotationsB(p);
   saveSiteAddresses(p);
 }
 function saveSiteAddresses(p){
