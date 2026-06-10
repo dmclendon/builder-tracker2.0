@@ -136,9 +136,101 @@ tr:hover td{background:#fafaf8;}
 .note-add input{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:5px 8px;width:100%;background:#fafaf8;outline:none;font-family:inherit;color:#1a1a1a;}
 .note-add input:focus{border-color:#003DA5;background:#fff;}
 .note-add input::placeholder{color:#bbb;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-field label{display:block;font-size:11px;font-weight:500;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:#003DA5;}
+.modal-field textarea{resize:vertical;min-height:60px;}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 </style>
 </head>
 <body>
+
+
+<!-- ADD BUILDER MODAL -->
+<div class="modal-overlay" id="modal-overlay" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">Add new builder</h3>
+    <div class="modal-field">
+      <label>Builder name *</label>
+      <input type="text" id="m-name" placeholder="e.g. Smith Luxury Homes"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Type</label>
+        <select id="m-type">
+          <option value="Luxury">Luxury</option>
+          <option value="Volume">Volume</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Zone</label>
+        <select id="m-zone">
+          <option value="">— Select zone —</option>
+          <option>N. Alpharetta / Milton</option>
+          <option>N. Cumming / Forsyth</option>
+          <option>Northwest Marietta / Woodstock</option>
+          <option>Northeast Johns Creek</option>
+          <option>Central / ITP Buckhead</option>
+          <option>South / Newnan / Hoschton</option>
+          <option>East Gwinnett</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Primary office address</label>
+      <input type="text" id="m-address" placeholder="Street address"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Website</label>
+        <input type="text" id="m-website" placeholder="e.g. smithluxury.com"/>
+      </div>
+      <div class="modal-field">
+        <label>Vacant Dev. Lots</label>
+        <input type="number" id="m-lots" placeholder="# lots"/>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:500;color:#1a1a1a;margin:14px 0 8px;padding-top:8px;border-top:1px solid #f0f0ee;">Primary contact</div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Full name</label>
+        <input type="text" id="m-cname" placeholder="First Last"/>
+      </div>
+      <div class="modal-field">
+        <label>Title / role</label>
+        <input type="text" id="m-ctitle" placeholder="e.g. Owner, Purchasing Mgr"/>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Phone</label>
+        <input type="text" id="m-cphone" placeholder="(xxx) xxx-xxxx"/>
+      </div>
+      <div class="modal-field">
+        <label>Email</label>
+        <input type="text" id="m-cemail" placeholder="name@company.com"/>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>LinkedIn</label>
+      <input type="text" id="m-clinkedin" placeholder="linkedin.com/in/…"/>
+    </div>
+    <div class="modal-field">
+      <label>Initial notes</label>
+      <textarea id="m-notes" placeholder="Any context or next steps?"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveModal()"><i class="ti ti-check"></i> Save builder</button>
+    </div>
+  </div>
+</div>
 
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
@@ -225,6 +317,7 @@ tr:hover td{background:#fafaf8;}
         <select id="f-rep" onchange="render()">
           <option value="">All reps</option>
         </select>
+        <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add builder</button>
       </div>
       <div class="edit-hint"><i class="ti ti-pencil" style="font-size:12px;"></i> Click any field to edit — all changes save live to the shared Google Sheet.</div>
       <div class="scroll-wrap">
@@ -257,7 +350,7 @@ tr:hover td{background:#fafaf8;}
               <th>Priority</th>
               <th>Zone</th>
               <th>Contacts</th>
-              <th>Address / website</th>
+              <th>Primary office address / website</th>
               <th>Site addresses</th>
               <th>Vacant Dev. Lots</th>
               <th>Closing Price (Avg)</th>
@@ -273,6 +366,7 @@ tr:hover td{background:#fafaf8;}
               <th>Angle</th>
               <th>Action</th>
               <th>General notes</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -608,7 +702,7 @@ function saveLocalAnnotationsB(p){const log=getLog(p);try{LOCAL_FIELDS_B.forEach
 function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});}catch(e){}});}
 const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
-function setPriority(p,val,sel){getLog(p).priority=val;sel.style.cssText=priorityStyle(val);queueSaveLog(p);}
+function setPriority(p,val,sel){const b=getB(p);getLog(p).priority=val;sel.style.cssText=priorityStyle(val);if(b)addAct(b.name,'priority',val,getLog(p).rep);queueSaveLog(p);}
 const activePF=new Set();
 let lastFiltered=[];
 function togglePF(val,btn){
@@ -640,7 +734,7 @@ function queueSaveLog(p){
 }
 
 function addAct(builderName,field,newVal,rep){
-  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,officeVisitNote:`Office visit: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`};
+  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,officeVisitNote:`Office visit: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Primary office address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`,phoneNote:`Phone call: <strong>${builderName}</strong> — "${newVal}"`,siteAddresses:`Site address updated: <strong>${builderName}</strong> — "${newVal}"`,priority:`Priority changed: <strong>${builderName}</strong> → ${newVal}`,angle:`Angle: <strong>${builderName}</strong> — "${newVal}"`,action:`Action: <strong>${builderName}</strong> — "${newVal}"`,nextSteps:`Next steps: <strong>${builderName}</strong> — "${newVal}"`,lots:`Lot count updated: <strong>${builderName}</strong> — ${newVal}`,name:`Builder renamed: <strong>${builderName}</strong> → ${newVal}`};
   const entry={ts:nowStr(),day:todayKey(),dayLabel:todayStr(),msg:msgs[field]||`Updated: <strong>${builderName}</strong>`,field,status:field==='status'?newVal:null,builder:builderName,rep:rep||''};
   activity.push(entry);
   apiPost({action:'saveActivity',data:entry}).catch(()=>{});
@@ -786,7 +880,7 @@ function render(){
       <td style="font-size:11px;color:#888;">${b.zone}</td>
       <td>${renderContactsCell(b)}</td>
       <td>
-        <textarea class="ei" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="margin-bottom:3px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(b.address)}</textarea>
+        <textarea class="ei" placeholder="Primary office address" onblur="setBuilderInfo(${b.p},'address',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="margin-bottom:3px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(b.address)}</textarea>
         <textarea class="ei" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="color:#003DA5;resize:none;word-break:break-all;min-height:22px;overflow:hidden;">${esc(b.website)}</textarea>
       </td>
       <td>${renderBuilderSiteAddressesCell(b)}</td>
@@ -807,6 +901,7 @@ function render(){
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
       <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#003DA5;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
       <td>${renderLogHtml(parseNotes(log.notes),`appendNote(${b.p},this,'notes')`,`deleteNote(${b.p},'notes',IDX)`)}</td>
+      <td><button class="del-btn" onclick="deleteBuilder(${b.p})" title="Delete builder" style="position:static;font-size:18px;color:#ddd;padding:2px;"><i class="ti ti-trash" style="font-size:13px;"></i></button></td>
     </tr>`;
   }).join('');
   updateStats();
@@ -860,7 +955,7 @@ function renderReport(){
   days.forEach(day=>{
     const g=grouped[day];html+=`<div class="day-group"><div class="day-label">${g.label}</div>`;
     g.entries.slice().reverse().forEach(a=>{
-      const iconMap={status:'ti-arrow-right',date:'ti-calendar',notes:'ti-note',rep:'ti-user',contact:'ti-id-badge',address:'ti-map-pin',website:'ti-world',emailDate:'ti-mail',emailNote:'ti-mail',liDate:'ti-brand-linkedin',liNote:'ti-brand-linkedin'};
+      const iconMap={status:'ti-arrow-right',date:'ti-calendar',notes:'ti-note',rep:'ti-user',contact:'ti-id-badge',address:'ti-map-pin',website:'ti-world',emailDate:'ti-mail',emailNote:'ti-mail',liDate:'ti-brand-linkedin',liNote:'ti-brand-linkedin',phoneNote:'ti-phone',siteAddresses:'ti-map-pin',priority:'ti-flag',angle:'ti-target',action:'ti-bolt',nextSteps:'ti-checklist',lots:'ti-building-community',name:'ti-pencil',officeVisitNote:'ti-building',siteVisitNote:'ti-map-pin'};
       const icon=iconMap[a.field]||'ti-pencil';
       const repTag=a.rep?`<span style="font-size:10px;color:#aaa;margin-left:8px;">via ${a.rep}</span>`:'';
       html+=`<div class="log-entry"><div class="log-time">${a.ts}</div><div class="log-text"><i class="ti ${icon}" style="font-size:11px;margin-right:4px;color:#aaa;"></i>${a.msg}${a.status?`<span class="log-badge ${LB_CLASS[a.status]}">${STATUS_LABEL[a.status]}</span>`:''}${repTag}</div></div>`;
@@ -923,6 +1018,7 @@ function setBuilderSiteAddress(p,idx,v){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
   b.siteAddresses[idx]=v;
+  if(v.trim())addAct(b.name,'siteAddresses',v,getLog(p).rep);
   saveSiteAddresses(p);
 }
 function saveSiteAddresses(p){
@@ -937,6 +1033,51 @@ function switchTab(tab){
   if(tab==='reps')renderRepManager();
 }
 
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function nextBuilderId(){return Math.max(...builders.map(b=>typeof b.p==='number'?b.p:0),33)+1;}
+
+function openModal(){
+  document.getElementById('m-name').value='';
+  document.getElementById('m-type').value='Luxury';
+  document.getElementById('m-zone').value='';
+  document.getElementById('m-address').value='';
+  document.getElementById('m-website').value='';
+  document.getElementById('m-lots').value='';
+  document.getElementById('m-cname').value='';
+  document.getElementById('m-ctitle').value='';
+  document.getElementById('m-cphone').value='';
+  document.getElementById('m-cemail').value='';
+  document.getElementById('m-clinkedin').value='';
+  document.getElementById('m-notes').value='';
+  document.getElementById('modal-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('m-name').focus(),50);
+}
+function closeModal(){document.getElementById('modal-overlay').style.display='none';}
+function saveModal(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){showToast('Builder name is required.');document.getElementById('m-name').focus();return;}
+  const p=nextBuilderId();
+  const lotsVal=document.getElementById('m-lots').value;
+  const contact={name:document.getElementById('m-cname').value.trim(),title:document.getElementById('m-ctitle').value.trim(),phone:document.getElementById('m-cphone').value.trim(),email:document.getElementById('m-cemail').value.trim(),linkedin:document.getElementById('m-clinkedin').value.trim()};
+  const newB={p,name,type:document.getElementById('m-type').value,zone:document.getElementById('m-zone').value,address:document.getElementById('m-address').value.trim(),website:document.getElementById('m-website').value.trim(),lots:lotsVal===''?null:parseInt(lotsVal),contacts:[contact],siteAddresses:[]};
+  builders.push(newB);
+  logs[p]={status:'none',rep:'',priority:'',notes:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',phoneNote:'',angle:'',action:'',nextSteps:'',statusLog:'',date:'',lastActivity:'',createdAt:todayKey()};
+  const initNotes=document.getElementById('m-notes').value.trim();
+  if(initNotes){logs[p].notes=JSON.stringify([{text:initNotes,ts:nowStr(),day:todayKey()}]);}
+  addAct(name,'status','none','');
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,lots:newB.lots,type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
+  apiPost({action:'saveContacts',data:{builderId:p,contacts:newB.contacts}}).catch(()=>{});
+  apiPost({action:'saveLog',data:{builderId:p,log:logs[p]}}).catch(()=>{});
+  closeModal();render();updateStats();showToast(`${name} added!`);
+}
+function deleteBuilder(p){
+  const b=getB(p);if(!b)return;
+  if(!confirm(`Delete ${b.name}? This cannot be undone.`))return;
+  builders=builders.filter(x=>x.p!==p);
+  apiPost({action:'deleteBuilder',data:{builderId:p}}).catch(()=>{});
+  render();updateStats();showToast(`${b.name} deleted.`);
+}
+
 loadAll();
 </script>
 
@@ -946,6 +1087,17 @@ loadAll();
   #print-frame { display:block !important; }
 }
 #print-frame { display:none; }
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-field label{display:block;font-size:11px;font-weight:500;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:#003DA5;}
+.modal-field textarea{resize:vertical;min-height:60px;}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 </style>
 <script>
 const PRINT_COLS=[
@@ -954,7 +1106,7 @@ const PRINT_COLS=[
   {h:'Priority',          v:b=>({now:'Now',high:'High',med:'Med',low:'Low'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
   {h:'Zone',              v:b=>b.zone||'—'},
   {h:'Contacts',          v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
-  {h:'Address / Website', v:b=>[b.address,b.website].filter(Boolean).join('\n')||'—'},
+  {h:'Primary office address / website', v:b=>[b.address,b.website].filter(Boolean).join('\n')||'—'},
   {h:'Site addresses',    v:b=>(b.siteAddresses||[]).join('\n')||'—'},
   {h:'Vacant Lots',       v:b=>b.lots!=null?b.lots:'—'},
   {h:'Assigned Rep',      v:b=>getLog(b.p).rep||'—'},
@@ -1001,7 +1153,18 @@ function executePrint(){
     td{border:1px solid #ccc;padding:2px 4px;vertical-align:top;word-break:break-word;overflow:hidden;max-height:80px;}
     tr:nth-child(even) td{background:#f7f9fc;}
     @media print{@page{size:landscape;margin:0.5cm;}body{font-size:7.5px;}}
-  </style></head><body>
+  
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-field label{display:block;font-size:11px;font-weight:500;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:#003DA5;}
+.modal-field textarea{resize:vertical;min-height:60px;}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+</style></head><body>
   <h2>Aidan's Home Services — Builder Tracker</h2>
   <p class="meta">Printed ${new Date().toLocaleString()} &nbsp;|&nbsp; ${filtered.length} builder(s)</p>
   ${tableHtml}
