@@ -774,7 +774,7 @@ function setContactField(p,ci,field,v){
 }
 function addContact(p){getB(p).contacts.push({name:'',title:'',phone:'',email:'',linkedin:''});render();setTimeout(()=>{const rows=document.querySelectorAll(`[data-cr="${p}"]`);if(rows.length){const inp=rows[rows.length-1].querySelector('input');if(inp)inp.focus();}},50);}
 function removeContact(p,ci){const b=getB(p);if(b.contacts.length<=1){showToast('At least one contact required.');return;}b.contacts.splice(ci,1);apiPost({action:'saveContacts',data:{builderId:p,contacts:b.contacts}}).catch(()=>{});render();}
-function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[]}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
+function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
 
 function updateStats(){
   document.getElementById('s-none').textContent=builders.filter(b=>getLog(b.p).status==='none').length;
@@ -881,7 +881,7 @@ function render(){
         </select>
         <div style="margin-top:5px;">${renderNextStepsHtml(b.p,parseNotes(log.nextSteps||''))}</div>
       </td>
-      <td style="font-size:11px;color:#888;">${b.zone}</td>
+      <td><select class="fsel" style="font-size:11px;" onchange="setBuilderInfo(${b.p},'zone',this.value)"><option value="">— Zone —</option><option value="N. Alpharetta / Milton"${b.zone==="N. Alpharetta / Milton"?' selected':''}>N. Alpharetta / Milton</option><option value="N. Cumming / Forsyth"${b.zone==="N. Cumming / Forsyth"?' selected':''}>N. Cumming / Forsyth</option><option value="Northwest Marietta / Woodstock"${b.zone==="Northwest Marietta / Woodstock"?' selected':''}>Northwest Marietta / Woodstock</option><option value="Northeast Johns Creek"${b.zone==="Northeast Johns Creek"?' selected':''}>Northeast Johns Creek</option><option value="Central / ITP Buckhead"${b.zone==="Central / ITP Buckhead"?' selected':''}>Central / ITP Buckhead</option><option value="South / Newnan / Hoschton"${b.zone==="South / Newnan / Hoschton"?' selected':''}>South / Newnan / Hoschton</option><option value="East Gwinnett"${b.zone==="East Gwinnett"?' selected':''}>East Gwinnett</option></select></td>
       <td>${renderContactsCell(b)}</td>
       <td>
         <textarea class="ei" placeholder="Primary office address" onblur="setBuilderInfo(${b.p},'address',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="margin-bottom:3px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(b.address)}</textarea>
@@ -1031,7 +1031,7 @@ function setBuilderSiteAddress(p,idx,v){
 function saveSiteAddresses(p){
   const b=getB(p);if(!b)return;
   setSyncStatus('saving');
-  apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[]}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
 }
 
 function switchTab(tab){
