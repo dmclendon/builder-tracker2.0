@@ -619,13 +619,7 @@ async function loadAll(){
     if(data.builderInfo){
       Object.entries(data.builderInfo).forEach(([bid,info])=>{
         const b=builders.find(x=>String(x.p)===String(bid));
-        if(b){if(info.name)b.name=info.name;if(info.address)b.address=info.address;if(info.website!==undefined)b.website=info.website;if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;}
-      });
-    }
-    if(data.siteAddresses){
-      Object.entries(data.siteAddresses).forEach(([bid,addrs])=>{
-        const b=builders.find(x=>String(x.p)===String(bid));
-        if(b&&Array.isArray(addrs))b.siteAddresses=addrs;
+        if(b){if(info.name)b.name=info.name;if(info.address)b.address=info.address;if(info.website!==undefined)b.website=info.website;if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;}
       });
     }
     setSyncStatus('ok');
@@ -770,7 +764,7 @@ function setContactField(p,ci,field,v){
 }
 function addContact(p){getB(p).contacts.push({name:'',title:'',phone:'',email:'',linkedin:''});render();setTimeout(()=>{const rows=document.querySelectorAll(`[data-cr="${p}"]`);if(rows.length){const inp=rows[rows.length-1].querySelector('input');if(inp)inp.focus();}},50);}
 function removeContact(p,ci){const b=getB(p);if(b.contacts.length<=1){showToast('At least one contact required.');return;}b.contacts.splice(ci,1);apiPost({action:'saveContacts',data:{builderId:p,contacts:b.contacts}}).catch(()=>{});render();}
-function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
+function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[]}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
 
 function updateStats(){
   document.getElementById('s-none').textContent=builders.filter(b=>getLog(b.p).status==='none').length;
@@ -1024,7 +1018,7 @@ function setBuilderSiteAddress(p,idx,v){
 function saveSiteAddresses(p){
   const b=getB(p);if(!b)return;
   setSyncStatus('saving');
-  apiPost({action:'saveSiteAddresses',data:{builderId:p,siteAddresses:b.siteAddresses}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[]}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
 }
 
 function switchTab(tab){
@@ -1065,7 +1059,7 @@ function saveModal(){
   const initNotes=document.getElementById('m-notes').value.trim();
   if(initNotes){logs[p].notes=JSON.stringify([{text:initNotes,ts:nowStr(),day:todayKey()}]);}
   addAct(name,'status','none','');
-  apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,lots:newB.lots,type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,lots:newB.lots,siteAddresses:[],type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
   apiPost({action:'saveContacts',data:{builderId:p,contacts:newB.contacts}}).catch(()=>{});
   apiPost({action:'saveLog',data:{builderId:p,log:logs[p]}}).catch(()=>{});
   closeModal();render();updateStats();showToast(`${name} added!`);
