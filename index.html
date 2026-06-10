@@ -272,7 +272,7 @@ tr:hover td{background:#fafaf8;}
 
 <div class="main">
   <div class="stats">
-    <div class="stat"><div class="stat-label">Total builders</div><div class="stat-val">33</div></div>
+    <div class="stat"><div class="stat-label">Total builders</div><div class="stat-val" id="s-total">—</div></div>
     <div class="stat"><div class="stat-label">Not contacted</div><div class="stat-val" id="s-none">—</div></div>
     <div class="stat"><div class="stat-label">In progress</div><div class="stat-val" id="s-prog" style="color:#854F0B;">—</div></div>
     <div class="stat"><div class="stat-label">Approved / meeting</div><div class="stat-val" id="s-done" style="color:#003DA5;">—</div></div>
@@ -777,6 +777,7 @@ function removeContact(p,ci){const b=getB(p);if(b.contacts.length<=1){showToast(
 function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
 
 function updateStats(){
+  document.getElementById('s-total').textContent=builders.length;
   document.getElementById('s-none').textContent=builders.filter(b=>getLog(b.p).status==='none').length;
   document.getElementById('s-prog').textContent=builders.filter(b=>['contacted','replied','visited','office_visit'].includes(getLog(b.p).status)).length;
   document.getElementById('s-done').textContent=builders.filter(b=>['meeting','approved'].includes(getLog(b.p).status)).length;
