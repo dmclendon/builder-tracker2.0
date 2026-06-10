@@ -192,6 +192,13 @@ tr:hover td{background:#fafaf8;}
         <input type="text" id="m-website" placeholder="e.g. smithluxury.com"/>
       </div>
       <div class="modal-field">
+        <label>Gen ph #</label>
+        <input type="text" id="m-genphone" placeholder="e.g. (770) 555-1234"/>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field" style="flex:1"></div>
+      <div class="modal-field">
         <label>Vacant Dev. Lots</label>
         <input type="number" id="m-lots" placeholder="# lots"/>
       </div>
@@ -621,12 +628,13 @@ async function loadAll(){
         let b=builders.find(x=>String(x.p)===String(bid));
         if(!b){
           // Builder exists in sheet but not in DEFAULT_BUILDERS — add it dynamically
-          b={p:parseInt(bid)||bid,name:info.name||'',type:info.type||'Luxury',zone:info.zone||'',address:info.address||'',website:info.website||'',lots:info.lots===''||info.lots===null||info.lots===undefined?null:info.lots,contacts:[{name:'',title:'',phone:'',email:'',linkedin:''}],siteAddresses:[]};
+          b={p:parseInt(bid)||bid,name:info.name||'',type:info.type||'Luxury',zone:info.zone||'',address:info.address||'',website:info.website||'',genPhone:info.genPhone||'',lots:info.lots===''||info.lots===null||info.lots===undefined?null:info.lots,contacts:[{name:'',title:'',phone:'',email:'',linkedin:''}],siteAddresses:[]};
           builders.push(b);
         } else {
           if(info.name)b.name=info.name;
           if(info.address)b.address=info.address;
           if(info.website!==undefined)b.website=info.website;
+          if(info.genPhone!==undefined)b.genPhone=info.genPhone;
           if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;
         }
         if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;
@@ -738,7 +746,7 @@ function queueSaveLog(p){
 }
 
 function addAct(builderName,field,newVal,rep){
-  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,officeVisitNote:`Office visit: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Primary office address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`,phoneNote:`Phone call: <strong>${builderName}</strong> — "${newVal}"`,siteAddresses:`Site address updated: <strong>${builderName}</strong> — "${newVal}"`,priority:`Priority changed: <strong>${builderName}</strong> → ${newVal}`,angle:`Angle: <strong>${builderName}</strong> — "${newVal}"`,action:`Action: <strong>${builderName}</strong> — "${newVal}"`,nextSteps:`Next steps: <strong>${builderName}</strong> — "${newVal}"`,lots:`Lot count updated: <strong>${builderName}</strong> — ${newVal}`,name:`Builder renamed: <strong>${builderName}</strong> → ${newVal}`};
+  const msgs={status:`Status updated: <strong>${builderName}</strong> → ${STATUS_LABEL[newVal]||newVal}`,date:`Visit date set: <strong>${builderName}</strong> — ${newVal}`,notes:`Note: <strong>${builderName}</strong> — "${newVal}"`,rep:`Rep assigned: <strong>${builderName}</strong> → ${newVal||'Unassigned'}`,emailDate:`Email outreach logged: <strong>${builderName}</strong> — ${newVal}`,emailNote:`Email note: <strong>${builderName}</strong> — "${newVal}"`,liDate:`LinkedIn outreach logged: <strong>${builderName}</strong> — ${newVal}`,liNote:`LinkedIn note: <strong>${builderName}</strong> — "${newVal}"`,officeVisitNote:`Office visit: <strong>${builderName}</strong> — "${newVal}"`,siteVisitNote:`Site visit: <strong>${builderName}</strong> — "${newVal}"`,address:`Primary office address updated: <strong>${builderName}</strong>`,website:`Website updated: <strong>${builderName}</strong> — ${newVal}`,genPhone:`Gen ph # updated: <strong>${builderName}</strong> — ${newVal}`,phoneNote:`Phone call: <strong>${builderName}</strong> — "${newVal}"`,siteAddresses:`Site address updated: <strong>${builderName}</strong> — "${newVal}"`,priority:`Priority changed: <strong>${builderName}</strong> → ${newVal}`,angle:`Angle: <strong>${builderName}</strong> — "${newVal}"`,action:`Action: <strong>${builderName}</strong> — "${newVal}"`,nextSteps:`Next steps: <strong>${builderName}</strong> — "${newVal}"`,lots:`Lot count updated: <strong>${builderName}</strong> — ${newVal}`,name:`Builder renamed: <strong>${builderName}</strong> → ${newVal}`};
   const entry={ts:nowStr(),day:todayKey(),dayLabel:todayStr(),msg:msgs[field]||`Updated: <strong>${builderName}</strong>`,field,status:field==='status'?newVal:null,builder:builderName,rep:rep||''};
   activity.push(entry);
   apiPost({action:'saveActivity',data:entry}).catch(()=>{});
@@ -774,7 +782,7 @@ function setContactField(p,ci,field,v){
 }
 function addContact(p){getB(p).contacts.push({name:'',title:'',phone:'',email:'',linkedin:''});render();setTimeout(()=>{const rows=document.querySelectorAll(`[data-cr="${p}"]`);if(rows.length){const inp=rows[rows.length-1].querySelector('input');if(inp)inp.focus();}},50);}
 function removeContact(p,ci){const b=getB(p);if(b.contacts.length<=1){showToast('At least one contact required.');return;}b.contacts.splice(ci,1);apiPost({action:'saveContacts',data:{builderId:p,contacts:b.contacts}}).catch(()=>{});render();}
-function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
+function setBuilderInfo(p,field,v){const b=getB(p);b[field]=field==='lots'?(v===''?null:parseInt(v)):v;addAct(b.name,field,v,getLog(p).rep);setSyncStatus('saving');apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,genPhone:b.genPhone||'',lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));}
 
 function updateStats(){
   document.getElementById('s-total').textContent=builders.length;
@@ -887,6 +895,7 @@ function render(){
       <td>
         <textarea class="ei" placeholder="Primary office address" onblur="setBuilderInfo(${b.p},'address',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="margin-bottom:3px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(b.address)}</textarea>
         <textarea class="ei" placeholder="Website" onblur="setBuilderInfo(${b.p},'website',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="color:#003DA5;resize:none;word-break:break-all;min-height:22px;overflow:hidden;">${esc(b.website)}</textarea>
+        <input class="ei" type="text" placeholder="Gen ph #" value="${esc(b.genPhone||'')}" onblur="setBuilderInfo(${b.p},'genPhone',this.value)" style="margin-top:3px;font-size:11px;color:#555;"/>
       </td>
       <td>${renderBuilderSiteAddressesCell(b)}</td>
       <td><input class="ei" type="text" value="${b.lots===null?'':b.lots}" placeholder="—" onblur="setBuilderInfo(${b.p},'lots',this.value)" style="text-align:right;"/></td>
@@ -1035,7 +1044,7 @@ function setBuilderSiteAddress(p,idx,v){
 function saveSiteAddresses(p){
   const b=getB(p);if(!b)return;
   setSyncStatus('saving');
-  apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name:b.name,address:b.address,website:b.website,genPhone:b.genPhone||'',lots:b.lots,siteAddresses:b.siteAddresses||[],type:b.type||'',zone:b.zone||''}}).then(()=>setSyncStatus('ok')).catch(()=>setSyncStatus('error'));
 }
 
 function switchTab(tab){
@@ -1053,6 +1062,7 @@ function openModal(){
   document.getElementById('m-zone').value='';
   document.getElementById('m-address').value='';
   document.getElementById('m-website').value='';
+  document.getElementById('m-genphone').value='';
   document.getElementById('m-lots').value='';
   document.getElementById('m-cname').value='';
   document.getElementById('m-ctitle').value='';
@@ -1070,7 +1080,7 @@ function saveModal(){
   const p=nextBuilderId();
   const lotsVal=document.getElementById('m-lots').value;
   const contact={name:document.getElementById('m-cname').value.trim(),title:document.getElementById('m-ctitle').value.trim(),phone:document.getElementById('m-cphone').value.trim(),email:document.getElementById('m-cemail').value.trim(),linkedin:document.getElementById('m-clinkedin').value.trim()};
-  const newB={p,name,type:document.getElementById('m-type').value,zone:document.getElementById('m-zone').value,address:document.getElementById('m-address').value.trim(),website:document.getElementById('m-website').value.trim(),lots:lotsVal===''?null:parseInt(lotsVal),contacts:[contact],siteAddresses:[]};
+  const newB={p,name,type:document.getElementById('m-type').value,zone:document.getElementById('m-zone').value,address:document.getElementById('m-address').value.trim(),website:document.getElementById('m-website').value.trim(),genPhone:document.getElementById('m-genphone').value.trim(),lots:lotsVal===''?null:parseInt(lotsVal),contacts:[contact],siteAddresses:[]};
   builders.push(newB);
   logs[p]={status:'none',rep:'',priority:'',notes:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',phoneNote:'',angle:'',action:'',nextSteps:'',statusLog:'',date:'',lastActivity:'',createdAt:todayKey()};
   const initNotes=document.getElementById('m-notes').value.trim();
@@ -1079,7 +1089,7 @@ function saveModal(){
   addAct(name,'contact','New builder added','');
   if(newB.zone)addAct(name,'zone',newB.zone,'');
   if(newB.address)addAct(name,'address',newB.address,'');
-  apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,lots:newB.lots,siteAddresses:[],type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
+  apiPost({action:'saveBuilderInfo',data:{builderId:p,name,address:newB.address,website:newB.website,genPhone:newB.genPhone||'',lots:newB.lots,siteAddresses:[],type:newB.type,zone:newB.zone,isNew:true}}).catch(()=>{});
   apiPost({action:'saveContacts',data:{builderId:p,contacts:newB.contacts}}).catch(()=>{});
   apiPost({action:'saveLog',data:{builderId:p,log:logs[p]}}).catch(()=>{});
   closeModal();render();updateStats();showToast(`${name} added!`);
