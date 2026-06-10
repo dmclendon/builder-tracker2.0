@@ -40,8 +40,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .filters input:focus,.filters select:focus{border-color:#003DA5;}
 .edit-hint{font-size:11px;color:#888;padding:8px 16px;background:#fafaf8;border-bottom:1px solid #f0f0ee;display:flex;align-items:center;gap:5px;}
 .scroll-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 300px);}
-.col-freeze-1{position:sticky;left:0;z-index:6;background:#fff;}
-.col-freeze-2{position:sticky;left:28px;z-index:6;background:#fff;box-shadow:2px 0 5px rgba(0,0,0,.06);}
+.col-freeze-1{position:sticky;left:0;z-index:6;background:#fff;box-shadow:2px 0 5px rgba(0,0,0,.06);}
 th.col-freeze-1{background:#fafaf8;z-index:15;}
 th.col-freeze-2{background:#fafaf8;z-index:15;}
 tr:hover td.col-freeze-1,tr:hover td.col-freeze-2{background:#fafaf8;}
@@ -231,7 +230,6 @@ tr:hover td{background:#fafaf8;}
       <div class="scroll-wrap">
         <table>
           <colgroup>
-            <col style="width:28px">
             <col style="width:210px">
             <col style="width:220px">
             <col style="width:110px">
@@ -255,8 +253,7 @@ tr:hover td{background:#fafaf8;}
           </colgroup>
           <thead>
             <tr>
-              <th class="col-freeze-1">#</th>
-              <th class="col-freeze-2">Builder</th>
+              <th class="col-freeze-1">Builder</th>
               <th>Priority</th>
               <th>Zone</th>
               <th>Contacts</th>
@@ -757,6 +754,13 @@ function render(){
     if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
     return true;
   });
+  const PORD={now:0,high:1,med:2,low:3};
+  lastFiltered.sort((a,b)=>{
+    const pa=PORD[getLog(a.p).priority??'']??4;
+    const pb=PORD[getLog(b.p).priority??'']??4;
+    if(pa!==pb)return pa-pb;
+    return(a.name||'').localeCompare(b.name||'');
+  });
   const log_=p=>getLog(p);
   const filtered=lastFiltered;
   document.getElementById('tbody').innerHTML=filtered.map(b=>{
@@ -765,8 +769,7 @@ function render(){
     const statOpts=STATUS_OPTS.map(o=>`<option value="${o.val}"${log.status===o.val?' selected':''}>${o.label}</option>`).join('');
     const repOpts=`<option value="">— Unassigned —</option>`+reps.map((r,ri)=>`<option value="${r}"${log.rep===r?' selected':''}>${r}</option>`).join('');
     return`<tr>
-      <td class="col-freeze-1" style="color:#aaa;font-size:11px;">${b.p}</td>
-      <td class="col-freeze-2">
+      <td class="col-freeze-1">
         <input class="ei" value="${esc(b.name)}" placeholder="Builder name" onblur="setBuilderInfo(${b.p},'name',this.value)" style="font-weight:600;font-size:12px;"/>
         <span class="badge ${b.type==='Luxury'?'badge-lux':'badge-vol'}" style="margin-top:3px;display:inline-block;">${b.type}</span>
       </td>
@@ -946,7 +949,6 @@ loadAll();
 </style>
 <script>
 const PRINT_COLS=[
-  {h:'#',                 v:b=>b.p},
   {h:'Builder',           v:b=>b.name||'—'},
   {h:'Type',              v:b=>b.type||'—'},
   {h:'Priority',          v:b=>({now:'Now',high:'High',med:'Med',low:'Low'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
