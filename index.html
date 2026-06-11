@@ -1020,7 +1020,7 @@ function exportCSV(){
 
 function renderBuilderSiteAddressesCell(b){
   const addrs=b.siteAddresses||[];
-  const rows=addrs.map((addr,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(addr)}</span></div><button class="note-del" onclick="removeBuilderSiteAddress(${b.p},${i})" title="Delete">×</button></div>`).join('');
+  const rows=addrs.map((addr,i)=>`<div class="note-entry"><div class="note-body"><input class="ei" value="${esc(addr)}" style="font-size:12px;width:100%;" onblur="setBuilderSiteAddress(${b.p},${i},this.value)"/></div><button class="note-del" onclick="removeBuilderSiteAddress(${b.p},${i})" title="Delete">×</button></div>`).join('');
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add address…" onkeydown="if(event.key==='Enter'&&this.value.trim()){addBuilderSiteAddress(${b.p},this);}"/></div></div>`;
 }
 function addBuilderSiteAddress(p,inputEl){
