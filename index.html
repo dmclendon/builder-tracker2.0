@@ -58,9 +58,7 @@ tr:hover td{background:#fafaf8;}
 .ei:hover{border-color:#e0e0de;background:#fff;}
 .ei:focus{border-color:#003DA5;background:#fff;outline:none;}
 .ei::placeholder{color:#bbb;}
-.sa-editor:empty:before{content:attr(placeholder);color:#bbb;pointer-events:none;}
-.sa-editor:hover{border-color:#e0e0de;background:#fff;}
-.sa-editor:focus{border-color:#003DA5;background:#fff;}
+
 .fsel{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:3px 5px;background:#fff;color:#1a1a1a;width:100%;outline:none;}
 .fsel:focus{border-color:#003DA5;}
 .outreach-date{font-size:11px;border:1px solid #e0e0de;border-radius:6px;padding:3px 6px;background:#fafaf8;color:#888;width:100%;outline:none;font-family:inherit;margin-top:4px;}
@@ -1043,12 +1041,9 @@ function renderBuilderSiteAddressesCell(b){
   const addrs=b.siteAddresses||[];
   let html='';
   addrs.forEach((addr,i)=>{
-    html+=`<div class="contact-row" data-bsa="${b.p}" style="flex-direction:column;align-items:flex-start;gap:2px;">
-      <div style="display:flex;align-items:center;gap:4px;width:100%;">
-        <button class="del-btn" onclick="removeBuilderSiteAddress(${b.p},${i})">×</button>
-        <button class="bold-btn" onmousedown="event.preventDefault();document.execCommand('bold')" title="Bold (Ctrl+B)" style="font-size:10px;font-weight:700;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f5f5f3;cursor:pointer;line-height:1.4;">B</button>
-      </div>
-      <div class="ei sa-editor" contenteditable="true" data-p="${b.p}" data-i="${i}" placeholder="Site address" onblur="setBuilderSiteAddressHtml(${b.p},${i},this)" style="font-size:11px;word-break:break-word;min-height:36px;width:100%;outline:none;white-space:pre-wrap;">${addr}</div>
+    html+=`<div class="contact-row" data-bsa="${b.p}">
+      <button class="del-btn" onclick="removeBuilderSiteAddress(${b.p},${i})">×</button>
+      <textarea class="ei" placeholder="Site address" onblur="setBuilderSiteAddress(${b.p},${i},this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="font-size:11px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(addr)}</textarea>
     </div>`;
   });
   html+=`<button class="add-contact-btn" onclick="addBuilderSiteAddress(${b.p})"><i class="ti ti-plus" style="font-size:11px;"></i> Add address</button>`;
@@ -1061,7 +1056,7 @@ function addBuilderSiteAddress(p){
   addAct(b.name,'siteAddresses','(new address added)',getLog(p).rep);
   saveLocalAnnotationsB(p);
   render();
-  setTimeout(()=>{const rows=document.querySelectorAll(`[data-bsa="${p}"]`);if(rows.length){const ed=rows[rows.length-1].querySelector('.sa-editor');if(ed)ed.focus();}},50);
+  setTimeout(()=>{const rows=document.querySelectorAll(`[data-bsa="${p}"]`);if(rows.length){const ta=rows[rows.length-1].querySelector('textarea');if(ta)ta.focus();}},50);
 }
 function removeBuilderSiteAddress(p,idx){
   const b=getB(p);if(!b)return;
@@ -1072,14 +1067,7 @@ function removeBuilderSiteAddress(p,idx){
   saveLocalAnnotationsB(p);
   saveSiteAddresses(p);render();
 }
-function setBuilderSiteAddressHtml(p,idx,el){
-  const b=getB(p);if(!b)return;
-  if(!b.siteAddresses)b.siteAddresses=[];
-  const v=el.innerHTML;
-  b.siteAddresses[idx]=v;
-  if(el.innerText.trim())addAct(b.name,'siteAddresses',el.innerText.trim(),getLog(p).rep);
-  saveLocalAnnotationsB(p);saveSiteAddresses(p);
-}
+
 function setBuilderSiteAddress(p,idx,v){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
