@@ -139,6 +139,13 @@ tr:hover td{background:#fafaf8;}
 .note-add input{font-size:12px;border:1px solid #e0e0de;border-radius:6px;padding:5px 8px;width:100%;background:#fafaf8;outline:none;font-family:inherit;color:#1a1a1a;}
 .note-add input:focus{border-color:#003DA5;background:#fff;}
 .note-add input::placeholder{color:#bbb;}
+.note-rich-wrap{border:1px solid #e0e0de;border-radius:6px;background:#fafaf8;overflow:hidden;}
+.note-rich-wrap:focus-within{border-color:#003DA5;background:#fff;}
+.note-rich-toolbar{display:flex;gap:3px;padding:3px 5px;border-bottom:1px solid #f0f0ee;background:#f5f5f3;}
+.note-rich-toolbar button{font-size:10px;font-weight:700;padding:1px 6px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer;line-height:1.4;font-family:inherit;}
+.note-rich-toolbar button:hover{background:#e8e8e6;}
+.note-rich-input{font-size:12px;padding:5px 8px;min-height:28px;outline:none;font-family:inherit;color:#1a1a1a;white-space:pre-wrap;word-break:break-word;}
+.note-rich-input:empty:before{content:attr(placeholder);color:#bbb;pointer-events:none;}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
 .modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
@@ -296,7 +303,7 @@ tr:hover td{background:#fafaf8;}
   </div>
 
   <div class="tab-row">
-    <button class="tab active" id="tab-log" onclick="switchTab('log')"><i class="ti ti-list"></i> Visit log</button>
+    <button class="tab active" id="tab-log" onclick="switchTab('log')"><i class="ti ti-list"></i> Main</button>
     <button class="tab" id="tab-report" onclick="switchTab('report')"><i class="ti ti-clipboard"></i> Activity Report</button>
     <button class="tab" id="tab-reps" onclick="switchTab('reps')"><i class="ti ti-users"></i> Manage reps</button>
   </div>
@@ -573,6 +580,23 @@ function deleteNote(p,field,idx){
   log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
   queueSaveLog(p);render();
 }
+function pastePlain(e){
+  e.preventDefault();
+  const text=(e.clipboardData||window.clipboardData).getData('text/plain');
+  document.execCommand('insertText',false,text);
+}
+function appendRichNote(p,el,field){
+  const html=el.innerHTML.trim();
+  const plain=el.innerText.trim();
+  if(!plain)return;
+  const log=getLog(p);
+  const ts=fmtNoteTs();
+  const entry=`[${ts}] ${html}`;
+  log[field]=log[field]?log[field]+'\n'+entry:entry;
+  el.innerHTML='';
+  if(OUTREACH_LABEL[field]){const sEntry=`[${ts}] ${OUTREACH_LABEL[field]}: ${plain}`;log.statusLog=log.statusLog?log.statusLog+'\n'+sEntry:sEntry;}
+  queueSaveLog(p);addAct(getB(p).name,field,plain,log.rep);render();
+}
 const OUTREACH_LABEL={emailNote:'Email outreach',liNote:'LinkedIn outreach',officeVisitNote:'Office visit',siteVisitNote:'Site visit',phoneNote:'Phone call'};
 function appendNote(p,inputEl,field){
   const text=inputEl.value.trim();if(!text)return;
@@ -846,8 +870,8 @@ function renderOutreachCell(p,type){
 function renderSiteVisitCell(p){
   const log=getLog(p);
   const noteEntries=parseNotes(log.siteVisitNote||'');
-  const rows=noteEntries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'siteVisitNote',${i})" title="Delete entry">×</button></div>`).join('');
-  return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'siteVisitNote');}"/></div></div>`;
+  const rows=noteEntries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${e.text}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'siteVisitNote',${i})" title="Delete entry">×</button></div>`).join('');
+  return`<div class="notes-log">${rows}<div class="note-add"><div class="note-rich-wrap"><div class="note-rich-toolbar"><button onmousedown="event.preventDefault();document.execCommand('bold')">B</button></div><div class="note-rich-input" contenteditable="true" placeholder="Add note…" onpaste="pastePlain(event)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();appendRichNote(${p},this,'siteVisitNote');}"></div></div></div></div>`;
 }
 function renderPhoneCallCell(p){
   const log=getLog(p);
