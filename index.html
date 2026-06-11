@@ -626,12 +626,6 @@ async function loadAll(){
     if(data.logs)Object.entries(data.logs).forEach(([k,v])=>{logs[k]=v;});
     if(data.activity&&data.activity.length)activity=data.activity;
     if(data.reps&&data.reps.length)reps=data.reps;
-    if(data.contacts){
-      Object.entries(data.contacts).forEach(([bid,contacts])=>{
-        const b=builders.find(x=>String(x.p)===String(bid));
-        if(b&&contacts&&contacts.filter(Boolean).length)b.contacts=contacts.filter(Boolean);
-      });
-    }
     if(data.builderInfo){
       Object.entries(data.builderInfo).forEach(([bid,info])=>{
         let b=builders.find(x=>String(x.p)===String(bid));
@@ -648,6 +642,13 @@ async function loadAll(){
           if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;
         }
         if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;
+      });
+    }
+    // Contacts merged AFTER builderInfo so dynamically-added builders exist first
+    if(data.contacts){
+      Object.entries(data.contacts).forEach(([bid,contacts])=>{
+        const b=builders.find(x=>String(x.p)===String(bid));
+        if(b&&contacts&&contacts.filter(Boolean).length)b.contacts=contacts.filter(Boolean);
       });
     }
     setSyncStatus('ok');
