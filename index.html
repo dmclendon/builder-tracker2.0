@@ -553,6 +553,17 @@ function renderLogHtml(entries,appendCmd,delCmd){
   const rows=entries.map((e,i)=>`<div class="note-entry"><div class="note-body"><span class="note-text">${esc(e.text)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="${delCmd.replace('IDX',i)}" title="Delete entry">×</button></div>`).join('');
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){${appendCmd};}"/></div></div>`;
 }
+function renderEditableNotesHtml(p,entries){
+  const rows=entries.map((e,i)=>`<div class="note-entry"><div class="note-body"><textarea class="ei" style="font-size:12px;width:100%;resize:none;overflow:hidden;min-height:22px;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="editNote(${p},'notes',${i},this.value)">${esc(e.text)}</textarea>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-del" onclick="deleteNote(${p},'notes',${i})" title="Delete entry">×</button></div>`).join('');
+  return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add note…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'notes');}"/></div></div>`;
+}
+function editNote(p,field,idx,v){
+  const log=getLog(p);const entries=parseNotes(log[field]||'');
+  if(!entries[idx])return;
+  entries[idx].text=v;
+  log[field]=entries.map(e=>`[${e.ts}] ${e.text}`).join('\n');
+  queueSaveLog(p);
+}
 function renderNextStepsHtml(p,entries){
   const rows=entries.map((e,i)=>{const done=e.text.startsWith('[DONE] ');const displayText=done?e.text.slice(7):e.text;return`<div class="note-entry${done?' note-done':''}"><div class="note-body"><span class="note-text">${esc(displayText)}</span>${e.ts?`<span class="note-ts">${esc(e.ts)}</span>`:''}</div><button class="note-check" onclick="checkNote(${p},'nextSteps',${i})" title="Mark done">✓</button><button class="note-del" onclick="deleteNote(${p},'nextSteps',${i})" title="Delete">×</button></div>`;}).join('');
   return`<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Next Steps</div><div class="notes-log">${rows}<div class="note-add"><input placeholder="Next step…" onkeydown="if(event.key==='Enter'&&this.value.trim()){appendNote(${p},this,'nextSteps');}"/></div></div>`;
@@ -929,7 +940,7 @@ function render(){
       <td style="font-size:11px;color:#888;white-space:nowrap;">${fmtLastActivity(log.lastActivity)}</td>
       <td><textarea class="ei" placeholder="Angle…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).angle=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;overflow:hidden;">${esc(log.angle)}</textarea></td>
       <td><textarea class="ei" placeholder="Action…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="getLog(${b.p}).action=this.value;queueSaveLog(${b.p})" style="resize:none;line-height:1.5;font-size:11px;color:#003DA5;font-weight:500;overflow:hidden;">${esc(log.action)}</textarea></td>
-      <td>${renderLogHtml(parseNotes(log.notes),`appendNote(${b.p},this,'notes')`,`deleteNote(${b.p},'notes',IDX)`)}</td>
+      <td>${renderEditableNotesHtml(b.p,parseNotes(log.notes))}</td>
       <td><button class="del-btn" onclick="deleteBuilder(${b.p})" title="Delete builder" style="position:static;font-size:18px;color:#ddd;padding:2px;"><i class="ti ti-trash" style="font-size:13px;"></i></button></td>
     </tr>`;
   }).join('');
