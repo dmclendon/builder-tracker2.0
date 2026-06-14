@@ -1310,6 +1310,7 @@ const PRINT_PRESETS={
 let printColChecked=Object.fromEntries(PRINT_COLS.map(c=>[c.h,true]));
 
 function printView(){
+  render(); // ensure lastFiltered is current
   // Build filter summary
   const parts=[];
   const search=document.getElementById('search').value.trim();
