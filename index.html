@@ -988,12 +988,16 @@ function render(){
   const fr=document.getElementById('f-rep').value;
   lastFiltered=builders.filter(b=>{
     const log=getLog(b.p);
-    // Combined city filter: office OR site city match from either selector
+    // City filter: match selected cities against office zone OR site address text
     const anyCitySelected=msState.zone.size>0||msState.saz.size>0;
     if(anyCitySelected){
-      const allSelected=new Set([...msState.zone,...msState.saz]);
-      const officeMatch=allSelected.has(b.zone);
-      const siteMatch=(b.siteAddresses||[]).some(sa=>{const a=typeof sa==='string'?{addr:sa,zone:''}:sa;return allSelected.has(a.zone);});
+      const allSelected=[...new Set([...msState.zone,...msState.saz])].map(c=>c.toLowerCase());
+      const bz=(b.zone||'').toLowerCase();
+      const officeMatch=allSelected.some(c=>bz===c||bz.includes(c));
+      const siteMatch=(b.siteAddresses||[]).some(sa=>{
+        const addr=(typeof sa==='string'?sa:(sa.addr||'')).toLowerCase();
+        return allSelected.some(c=>addr.includes(c));
+      });
       if(!officeMatch&&!siteMatch)return false;
     }
     if(ft&&b.type!==ft)return false;
