@@ -69,7 +69,29 @@ tr:hover td{background:#fafaf8;}
 .fp-btn.on-high{background:#C0392B;color:#fff;border-color:#C0392B;}
 .fp-btn.on-med{background:#F9E04B;color:#5a4a00;border-color:#c8b800;}
 .fp-btn.on-low{background:#bbb;color:#fff;border-color:#bbb;}
+.fp-btn.on-new{background:#7B2FBE;color:#fff;border-color:#7B2FBE;}
 .fp-btn.on-zone{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
+.ms-wrap{position:relative;display:inline-block;}
+.ms-btn{font-size:12px;padding:3px 8px;border:1px solid #b0c0d8;border-radius:4px;background:#fff;cursor:pointer;min-width:170px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px;white-space:nowrap;color:#333;}
+.ms-btn.has-selection{border-color:#0C447C;background:#E6F1FB;color:#0C447C;font-weight:600;}
+.ms-btn .ms-caret{font-size:9px;opacity:.5;flex-shrink:0;}
+.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #b0c0d8;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:1000;min-width:210px;max-height:280px;overflow-y:auto;padding:4px 0;}
+.ms-panel.open{display:block;}
+.ms-search{width:100%;box-sizing:border-box;border:none;border-bottom:1px solid #eee;padding:6px 10px;font-size:12px;outline:none;font-family:inherit;}
+.ms-clear{display:block;padding:4px 10px;font-size:11px;color:#A32D2D;cursor:pointer;border-bottom:1px solid #eee;font-weight:600;}
+.ms-clear:hover{background:#fff5f5;}
+.ms-opt{display:flex;align-items:center;gap:7px;padding:5px 10px;font-size:12px;cursor:pointer;color:#222;}
+.ms-opt:hover{background:#f0f4fa;}
+.ms-opt input[type=checkbox]{margin:0;cursor:pointer;accent-color:#0C447C;}
+#site-finder-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;}
+#site-finder-modal{background:#fff;border-radius:10px;padding:24px 28px;width:min(760px,95vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+#site-finder-modal h3{margin:0 0 12px;font-size:16px;color:#1a3a6b;}
+.sf-zone-label{font-size:11px;font-weight:700;color:#0C447C;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #E6F1FB;padding-bottom:3px;margin:14px 0 6px;}
+.sf-row{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0f0;align-items:flex-start;}
+.sf-builder{font-size:12px;font-weight:600;color:#1a3a6b;min-width:170px;flex-shrink:0;}
+.sf-addr{font-size:12px;color:#333;flex:1;}
+.sf-no-results{color:#888;font-size:13px;margin-top:12px;}
+.sa-zone-select{font-size:10px;padding:1px 3px;border:1px solid #ccc;border-radius:3px;color:#555;margin-top:2px;background:#fafafa;width:100%;}
 .add-contact-btn{font-size:11px;color:#003DA5;background:none;border:none;cursor:pointer;padding:3px 0;display:flex;align-items:center;gap:3px;margin-top:4px;}
 .add-contact-btn:hover{text-decoration:underline;}
 .contact-row{border-bottom:1px solid #f5f5f3;padding-bottom:5px;margin-bottom:5px;position:relative;padding-right:18px;}
@@ -167,19 +189,13 @@ tr:hover td{background:#fafaf8;}
         <select id="m-type">
           <option value="Luxury">Luxury</option>
           <option value="Volume">Volume</option>
+          <option value="General Contractor">General Contractor</option>
         </select>
       </div>
       <div class="modal-field">
-        <label>Zone</label>
+        <label>Office Quadrant</label>
         <select id="m-zone">
-          <option value="">— Select zone —</option>
-          <option>N. Alpharetta / Milton</option>
-          <option>N. Cumming / Forsyth</option>
-          <option>Northwest Marietta / Woodstock</option>
-          <option>Northeast Johns Creek</option>
-          <option>Central / ITP Buckhead</option>
-          <option>South / Newnan / Hoschton</option>
-          <option>East Gwinnett</option>
+          <option value="">— Select city —</option>
         </select>
       </div>
     </div>
@@ -303,17 +319,11 @@ tr:hover td{background:#fafaf8;}
     <div class="card">
       <div class="filters">
         <input type="text" id="search" placeholder="Search builder, contact…" oninput="render()"/>
-        <button class="fp-btn fz-btn" onclick="toggleZF('N. Alpharetta / Milton',this)">N. Alpharetta / Milton</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('N. Cumming / Forsyth',this)">N. Cumming / Forsyth</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('Northwest Marietta / Woodstock',this)">NW Marietta / Woodstock</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('Northeast Johns Creek',this)">NE Johns Creek</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('Central / ITP Buckhead',this)">Central / ITP Buckhead</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('South / Newnan / Hoschton',this)">South / Newnan / Hoschton</button>
-        <button class="fp-btn fz-btn" onclick="toggleZF('East Gwinnett',this)">East Gwinnett</button>
         <select id="f-type" onchange="render()">
           <option value="">All types</option>
           <option value="Luxury">Luxury</option>
           <option value="Volume">Volume</option>
+          <option value="General Contractor">General Contractor</option>
         </select>
         <select id="f-status" onchange="render()">
           <option value="">All statuses</option>
@@ -329,10 +339,31 @@ tr:hover td{background:#fafaf8;}
         <button class="fp-btn" id="fp-high" onclick="togglePF('high',this)">High</button>
         <button class="fp-btn" id="fp-med" onclick="togglePF('med',this)">Med</button>
         <button class="fp-btn" id="fp-low" onclick="togglePF('low',this)">Low</button>
+        <button class="fp-btn" id="fp-new" onclick="togglePF('new',this)">New</button>
         <select id="f-rep" onchange="render()">
           <option value="">All reps</option>
         </select>
         <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add builder</button>
+      </div>
+      <div class="filters" style="background:#f0f4fa;border-top:none;border-radius:0 0 6px 6px;padding:6px 12px;gap:8px;align-items:center;">
+        <span style="font-size:10px;color:#1a3a6b;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;">📍 Route &amp; Area</span>
+        <div class="ms-wrap" id="ms-zone-wrap">
+          <button class="ms-btn" id="ms-zone-btn" onclick="toggleMs('zone')" type="button"><span id="ms-zone-label">Office city…</span><span class="ms-caret">▼</span></button>
+          <div class="ms-panel" id="ms-zone-panel">
+            <input class="ms-search" placeholder="Search cities…" oninput="filterMsOpts('zone',this.value)"/>
+            <span class="ms-clear" onclick="clearMs('zone')">✕ Clear selection</span>
+            <div id="ms-zone-opts"></div>
+          </div>
+        </div>
+        <div class="ms-wrap" id="ms-saz-wrap">
+          <button class="ms-btn" id="ms-saz-btn" onclick="toggleMs('saz')" type="button"><span id="ms-saz-label">Site city…</span><span class="ms-caret">▼</span></button>
+          <div class="ms-panel" id="ms-saz-panel">
+            <input class="ms-search" placeholder="Search cities…" oninput="filterMsOpts('saz',this.value)"/>
+            <span class="ms-clear" onclick="clearMs('saz')">✕ Clear selection</span>
+            <div id="ms-saz-opts"></div>
+          </div>
+        </div>
+        <button class="btn" style="background:#0C447C;color:#fff;border-color:#0C447C;font-size:12px;padding:4px 10px;" onclick="openSiteFinder()">📍 Site Finder</button>
       </div>
       <div class="edit-hint"><i class="ti ti-pencil" style="font-size:12px;"></i> Click any field to edit — all changes save live to the shared Google Sheet.</div>
       <div class="scroll-wrap">
@@ -363,7 +394,7 @@ tr:hover td{background:#fafaf8;}
             <tr>
               <th class="col-freeze-1">Builder</th>
               <th>Priority</th>
-              <th>Zone</th>
+              <th>Office Quadrant</th>
               <th>Contacts</th>
               <th>Office / General Contacts</th>
               <th>Site addresses</th>
@@ -652,7 +683,7 @@ async function loadAll(){
           if(info.contactEmail!==undefined)b.contactEmail=info.contactEmail;
           if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;
         }
-        if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses;
+        if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses.map(a=>typeof a==='string'?{addr:a,zone:''}:a);
       });
     }
     // Contacts merged AFTER builderInfo so dynamically-added builders exist first
@@ -727,14 +758,14 @@ async function loadAll(){
     }
   });
   document.getElementById('loading').style.display='none';
-  render();updateStats();populateRepFilter();
+  render();updateStats();populateRepFilter();populateZoneDropdowns();
 }
 
 function getLog(p){if(!logs[p])logs[p]={status:'none',statusLog:'',date:'',notes:'',rep:'',emailDate:'',emailNote:'',liDate:'',liNote:'',officeVisitNote:'',siteVisitNote:'',phoneNote:'',lastActivity:'',angle:'',action:'',priority:'',nextSteps:''};return logs[p];}
 const LOCAL_FIELDS_B=['nextSteps','statusLog','officeVisitNote'];
 function saveLocalAnnotationsB(p){const log=getLog(p);const b=getB(p);try{LOCAL_FIELDS_B.forEach(f=>{localStorage.setItem(`bt_${f}_${p}`,log[f]||'');});if(b)localStorage.setItem(`bt_siteAddresses_${p}`,JSON.stringify(b.siteAddresses||[]));}catch(e){}}
-function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});const sa=localStorage.getItem(`bt_siteAddresses_${b.p}`);if(sa){try{const parsed=JSON.parse(sa);if(Array.isArray(parsed)&&parsed.length)b.siteAddresses=parsed;}catch(e){}};}catch(e){}});}
-const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;'};
+function restoreLocalAnnotationsB(){builders.forEach(b=>{const log=getLog(b.p);try{LOCAL_FIELDS_B.forEach(f=>{const v=localStorage.getItem(`bt_${f}_${b.p}`);if(v)log[f]=v;});const sa=localStorage.getItem(`bt_siteAddresses_${b.p}`);if(sa){try{const parsed=JSON.parse(sa);if(Array.isArray(parsed)&&parsed.length)b.siteAddresses=parsed.map(a=>typeof a==='string'?{addr:a,zone:''}:a);}catch(e){}};}catch(e){}});}
+const PRIORITY_STYLE={now:'background:#D4A017;color:#fff;font-weight:700;',high:'background:#C0392B;color:#fff;font-weight:700;',med:'background:#F9E04B;color:#5a4a00;font-weight:600;',low:'background:#bbb;color:#fff;font-weight:600;',new:'background:#7B2FBE;color:#fff;font-weight:700;'};
 function priorityStyle(v){return PRIORITY_STYLE[v]||'background:#f5f5f3;color:#aaa;';}
 function setPriority(p,val,sel){const b=getB(p);getLog(p).priority=val;sel.style.cssText=priorityStyle(val);if(b)addAct(b.name,'priority',val,getLog(p).rep);queueSaveLog(p);}
 const activePF=new Set();
@@ -744,11 +775,78 @@ function togglePF(val,btn){
   else{activePF.add(val);btn.className=`fp-btn on-${val}`;}
   render();
 }
-const activeZF=new Set();
-function toggleZF(val,btn){
-  if(activeZF.has(val)){activeZF.delete(val);btn.className='fp-btn fz-btn';}
-  else{activeZF.add(val);btn.className='fp-btn fz-btn on-zone';}
-  render();
+// ── Multi-select city filter ──────────────────────────────────
+const msState={zone:new Set(),saz:new Set()};
+function buildMsOpts(key,filter=''){
+  const container=document.getElementById(`ms-${key}-opts`);if(!container)return;
+  const cities=ZONE_OPTIONS.filter(z=>z&&(!filter||z.toLowerCase().includes(filter.toLowerCase())));
+  container.innerHTML=cities.map(z=>`<label class="ms-opt"><input type="checkbox" ${msState[key].has(z)?'checked':''} onchange="toggleMsCity('${key}','${z.replace(/'/g,"\\'")}',this.checked)"/>${esc(z)}</label>`).join('');
+}
+function toggleMsCity(key,city,checked){
+  if(checked)msState[key].add(city);else msState[key].delete(city);
+  updateMsBtn(key);render();
+}
+function updateMsBtn(key){
+  const sel=msState[key];
+  const btn=document.getElementById(`ms-${key}-btn`);
+  const lbl=document.getElementById(`ms-${key}-label`);
+  const def=key==='zone'?'Office city…':'Site city…';
+  if(sel.size===0){lbl.textContent=def;btn.classList.remove('has-selection');}
+  else if(sel.size===1){lbl.textContent=[...sel][0];btn.classList.add('has-selection');}
+  else{lbl.textContent=`${sel.size} cities selected`;btn.classList.add('has-selection');}
+}
+function toggleMs(key){
+  const panel=document.getElementById(`ms-${key}-panel`);
+  const isOpen=panel.classList.contains('open');
+  // close all panels first
+  document.querySelectorAll('.ms-panel').forEach(p=>p.classList.remove('open'));
+  if(!isOpen){buildMsOpts(key);panel.classList.add('open');}
+}
+function filterMsOpts(key,val){buildMsOpts(key,val);}
+function clearMs(key){
+  msState[key].clear();
+  buildMsOpts(key);updateMsBtn(key);render();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ms-wrap'))document.querySelectorAll('.ms-panel').forEach(p=>p.classList.remove('open'));
+});
+function populateZoneDropdowns(){
+  // Modal dropdown only (filter bar uses multi-select widget)
+  const md=document.getElementById('m-zone');
+  if(md){const cur=md.value;md.innerHTML='<option value="">— Select city —</option>'+ZONE_OPTIONS.filter(z=>z).map(z=>`<option value="${esc(z)}"${z===cur?' selected':''}>${esc(z)}</option>`).join('');}
+}
+function openSiteFinder(){
+  // Populate dropdown from ZONE_OPTIONS
+  const sel=document.getElementById('sf-zone-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All cities</option>'+ZONE_OPTIONS.filter(z=>z).map(z=>`<option value="${esc(z)}"${z===cur?' selected':''}>${esc(z)}</option>`).join('');
+  document.getElementById('site-finder-overlay').style.display='flex';
+  renderSiteFinder();
+}
+function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';}
+function renderSiteFinder(){
+  const zf=document.getElementById('sf-zone-filter').value;
+  // Build map of zone → entries from actual data
+  const zoneMap={};
+  builders.forEach(b=>{
+    (b.siteAddresses||[]).forEach(sa=>{
+      const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
+      if(!a.addr.trim()||!a.zone)return;
+      if(!zoneMap[a.zone])zoneMap[a.zone]=[];
+      zoneMap[a.zone].push({builder:b.name,addr:a.addr});
+    });
+  });
+  const zones=zf?[zf]:Object.keys(zoneMap).sort();
+  let html='';let anyResults=false;
+  zones.forEach(zone=>{
+    const entries=zoneMap[zone]||[];
+    if(!entries.length)return;
+    anyResults=true;
+    html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} site${entries.length!==1?'s':''})</div>`;
+    entries.forEach(e=>{html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
+  });
+  if(!anyResults)html=`<div class="sf-no-results">${zf?`No site addresses tagged as "${esc(zf)}" yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
+  document.getElementById('sf-content').innerHTML=html;
 }
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
@@ -874,7 +972,8 @@ function render(){
   const fr=document.getElementById('f-rep').value;
   lastFiltered=builders.filter(b=>{
     const log=getLog(b.p);
-    if(activeZF.size>0&&!activeZF.has(b.zone))return false;
+    if(msState.zone.size>0&&!msState.zone.has(b.zone))return false;
+    if(msState.saz.size>0&&!(b.siteAddresses||[]).some(sa=>{const a=typeof sa==='string'?{addr:sa,zone:''}:sa;return msState.saz.has(a.zone);}))return false;
     if(ft&&b.type!==ft)return false;
     if(fs&&log.status!==fs)return false;
     if(fp.size>0&&!fp.has(log.priority||''))return false;
@@ -883,7 +982,7 @@ function render(){
     if(search){const hay=[b.name,b.zone,b.address,b.website,...b.contacts.map(c=>[c.name,c.email,c.phone,c.linkedin,c.title].join(' '))].join(' ').toLowerCase();if(!hay.includes(search))return false;}
     return true;
   });
-  const PORD={now:0,high:1,med:2,low:3};
+  const PORD={now:0,high:1,med:2,low:3,new:4};
   lastFiltered.sort((a,b)=>{
     const pa=PORD[getLog(a.p).priority??'']??4;
     const pb=PORD[getLog(b.p).priority??'']??4;
@@ -903,6 +1002,7 @@ function render(){
         <select class="fsel" onchange="setBuilderInfo(${b.p},'type',this.value)" style="margin-top:3px;font-size:11px;">
           <option value="Luxury"${b.type==='Luxury'?' selected':''}>Luxury</option>
           <option value="Volume"${b.type==='Volume'?' selected':''}>Volume</option>
+          <option value="General Contractor"${b.type==='General Contractor'?' selected':''}>General Contractor</option>
         </select>
       </td>
       <td>
@@ -912,10 +1012,11 @@ function render(){
           <option value="high" ${log.priority==='high'?'selected':''}>High</option>
           <option value="med" ${log.priority==='med'?'selected':''}>Med</option>
           <option value="low" ${log.priority==='low'?'selected':''}>Low</option>
+          <option value="new" ${log.priority==='new'?'selected':''}>New</option>
         </select>
         <div style="margin-top:5px;">${renderNextStepsHtml(b.p,parseNotes(log.nextSteps||''))}</div>
       </td>
-      <td><select class="fsel" style="font-size:11px;" onchange="setBuilderInfo(${b.p},'zone',this.value)"><option value="">— Zone —</option><option value="N. Alpharetta / Milton"${b.zone==="N. Alpharetta / Milton"?' selected':''}>N. Alpharetta / Milton</option><option value="N. Cumming / Forsyth"${b.zone==="N. Cumming / Forsyth"?' selected':''}>N. Cumming / Forsyth</option><option value="Northwest Marietta / Woodstock"${b.zone==="Northwest Marietta / Woodstock"?' selected':''}>Northwest Marietta / Woodstock</option><option value="Northeast Johns Creek"${b.zone==="Northeast Johns Creek"?' selected':''}>Northeast Johns Creek</option><option value="Central / ITP Buckhead"${b.zone==="Central / ITP Buckhead"?' selected':''}>Central / ITP Buckhead</option><option value="South / Newnan / Hoschton"${b.zone==="South / Newnan / Hoschton"?' selected':''}>South / Newnan / Hoschton</option><option value="East Gwinnett"${b.zone==="East Gwinnett"?' selected':''}>East Gwinnett</option></select></td>
+      <td><select class="fsel" style="font-size:11px;" onchange="setBuilderInfo(${b.p},'zone',this.value)">${ZONE_OPTIONS.map(z=>`<option value="${esc(z)}"${b.zone===z?' selected':''}>${z||'— City —'}</option>`).join('')}</select></td>
       <td>${renderContactsCell(b)}</td>
       <td>
         <textarea class="ei" placeholder="Office address" onblur="setBuilderInfo(${b.p},'address',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="margin-bottom:3px;resize:none;word-break:break-word;min-height:42px;overflow:hidden;">${esc(b.address)}</textarea>
@@ -1023,22 +1124,24 @@ function copyReport(){
 function confirmClear(){if(!confirm('Clear the entire activity log?'))return;activity=[];apiPost({action:'saveActivity',data:{_clear:true}}).catch(()=>{});renderReport();}
 
 function exportCSV(){
-  const rows=[['#','Builder','Type','Zone','Contact name','Title','Phone','Email','LinkedIn','Address','Website','Site addresses','Lots','Assigned rep','Email outreach date','Email notes','LinkedIn outreach date','LinkedIn notes','Status','Last visit','Notes']];
-  builders.forEach(b=>{const log=getLog(b.p);b.contacts.forEach((c,ci)=>{rows.push([ci===0?b.p:'',ci===0?b.name:'',ci===0?b.type:'',ci===0?b.zone:'',c.name,c.title,c.phone,c.email,c.linkedin,ci===0?b.address:'',ci===0?b.website:'',ci===0?((b.siteAddresses||[]).join('; ')):'',ci===0?(b.lots===null?'':b.lots):'',ci===0?(log.rep||''):'',ci===0?(log.emailDate||''):'',ci===0?(log.emailNote||''):'',ci===0?(log.liDate||''):'',ci===0?(log.liNote||''):'',ci===0?(STATUS_LABEL[log.status]||''):'',ci===0?(log.date||''):'',ci===0?(log.notes||''):'' ]);});});
+  const rows=[['#','Builder','Type','Office Quadrant','Contact name','Title','Phone','Email','LinkedIn','Address','Website','Site addresses','Lots','Assigned rep','Email outreach date','Email notes','LinkedIn outreach date','LinkedIn notes','Status','Last visit','Notes']];
+  builders.forEach(b=>{const log=getLog(b.p);b.contacts.forEach((c,ci)=>{rows.push([ci===0?b.p:'',ci===0?b.name:'',ci===0?b.type:'',ci===0?b.zone:'',c.name,c.title,c.phone,c.email,c.linkedin,ci===0?b.address:'',ci===0?b.website:'',ci===0?((b.siteAddresses||[]).map(a=>typeof a==='string'?a:(a.addr+(a.zone?` [${a.zone}]`:''))).join('; ')):'',ci===0?(b.lots===null?'':b.lots):'',ci===0?(log.rep||''):'',ci===0?(log.emailDate||''):'',ci===0?(log.emailNote||''):'',ci===0?(log.liDate||''):'',ci===0?(log.liNote||''):'',ci===0?(STATUS_LABEL[log.status]||''):'',ci===0?(log.date||''):'',ci===0?(log.notes||''):'' ]);});});
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='aidan_builder_visits.csv';a.click();
 }
 
+const ZONE_OPTIONS=['','Acworth','Alpharetta','Ball Ground','Braselton','Brookhaven','Buckhead / ITP','Buford','Canton','Cartersville','Chamblee / Doraville','Conyers','Covington','Cumming','Dacula','Dallas / Hiram','Dawsonville','Decatur','Douglasville','Duluth','Dunwoody','East Cobb','Fairburn','Fayetteville','Gainesville','Grayson / Loganville','Holly Springs','Jasper','Jefferson','Johns Creek','Kennesaw','Lawrenceville','Lilburn','Lithonia','Marietta','McDonough','Milton','Newnan','Norcross / Peachtree Corners','Palmetto','Peachtree City','Powder Springs','Roswell','Sandy Springs','Senoia','Smyrna','Snellville','Stockbridge','Stone Mountain','Sugar Hill','Suwanee','Tyrone','Union City','Winder','Woodstock'];
 function renderBuilderSiteAddressesCell(b){
-  const addrs=b.siteAddresses||[];
-  const rows=addrs.map((addr,i)=>`<div class="note-entry"><div class="note-body"><textarea class="ei" style="font-size:12px;width:100%;resize:none;overflow:hidden;min-height:22px;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="setBuilderSiteAddress(${b.p},${i},this.value)">${esc(addr)}</textarea></div><button class="note-del" onclick="removeBuilderSiteAddress(${b.p},${i})" title="Delete">×</button></div>`).join('');
+  const addrs=(b.siteAddresses||[]).map(a=>typeof a==='string'?{addr:a,zone:''}:a);
+  const zopts=ZONE_OPTIONS.map(z=>`<option value="${esc(z)}">${z||'— zone —'}</option>`).join('');
+  const rows=addrs.map((a,i)=>`<div class="note-entry"><div class="note-body"><textarea class="ei" style="font-size:12px;width:100%;resize:none;overflow:hidden;min-height:22px;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onblur="setBuilderSiteAddress(${b.p},${i},'addr',this.value)">${esc(a.addr)}</textarea><select class="sa-zone-select" onchange="setBuilderSiteAddress(${b.p},${i},'zone',this.value)">${ZONE_OPTIONS.map(z=>`<option value="${esc(z)}"${a.zone===z?' selected':''}>${z||'— quadrant —'}</option>`).join('')}</select></div><button class="note-del" onclick="removeBuilderSiteAddress(${b.p},${i})" title="Delete">×</button></div>`).join('');
   return`<div class="notes-log">${rows}<div class="note-add"><input placeholder="Add address…" onkeydown="if(event.key==='Enter'&&this.value.trim()){addBuilderSiteAddress(${b.p},this);}"/></div></div>`;
 }
 function addBuilderSiteAddress(p,inputEl){
   const b=getB(p);if(!b)return;
   const v=(inputEl?inputEl.value:'').trim();if(!v)return;
   if(!b.siteAddresses)b.siteAddresses=[];
-  b.siteAddresses.push(v);
+  b.siteAddresses.push({addr:v,zone:''});
   if(inputEl)inputEl.value='';
   addAct(b.name,'siteAddresses',v,getLog(p).rep);
   saveLocalAnnotationsB(p);
@@ -1047,18 +1150,20 @@ function addBuilderSiteAddress(p,inputEl){
 function removeBuilderSiteAddress(p,idx){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
-  const removed=b.siteAddresses[idx]||'(empty)';
+  const removed=b.siteAddresses[idx];
+  const removedLabel=removed?(typeof removed==='string'?removed:removed.addr)||'(empty)':'(empty)';
   b.siteAddresses.splice(idx,1);
-  addAct(b.name,'siteAddresses','Removed: '+removed,getLog(p).rep);
+  addAct(b.name,'siteAddresses','Removed: '+removedLabel,getLog(p).rep);
   saveLocalAnnotationsB(p);
   saveSiteAddresses(p);render();
 }
-
-function setBuilderSiteAddress(p,idx,v){
+function setBuilderSiteAddress(p,idx,field,v){
   const b=getB(p);if(!b)return;
   if(!b.siteAddresses)b.siteAddresses=[];
-  b.siteAddresses[idx]=v;
-  if(v.trim())addAct(b.name,'siteAddresses',v,getLog(p).rep);
+  if(!b.siteAddresses[idx])b.siteAddresses[idx]={addr:'',zone:''};
+  if(typeof b.siteAddresses[idx]==='string')b.siteAddresses[idx]={addr:b.siteAddresses[idx],zone:''};
+  b.siteAddresses[idx][field]=v;
+  if(field==='addr'&&v.trim())addAct(b.name,'siteAddresses',v,getLog(p).rep);
   saveLocalAnnotationsB(p);
   saveSiteAddresses(p);
 }
@@ -1078,6 +1183,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function nextBuilderId(){return Math.max(...builders.map(b=>typeof b.p==='number'?b.p:0),33)+1;}
 
 function openModal(){
+  populateZoneDropdowns();
   document.getElementById('m-name').value='';
   document.getElementById('m-type').value='Luxury';
   document.getElementById('m-zone').value='';
@@ -1150,11 +1256,11 @@ loadAll();
 const PRINT_COLS=[
   {h:'Builder',           v:b=>b.name||'—'},
   {h:'Type',              v:b=>b.type||'—'},
-  {h:'Priority',          v:b=>({now:'Now',high:'High',med:'Med',low:'Low'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
-  {h:'Zone',              v:b=>b.zone||'—'},
+  {h:'Priority',          v:b=>({now:'Now',high:'High',med:'Med',low:'Low',new:'New'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
+  {h:'Office Quadrant',   v:b=>b.zone||'—'},
   {h:'Contacts',          v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
   {h:'Office / General Contacts', v:b=>[b.address,b.website].filter(Boolean).join('\n')||'—'},
-  {h:'Site addresses',    v:b=>(b.siteAddresses||[]).join('\n')||'—'},
+  {h:'Site addresses',    v:b=>(b.siteAddresses||[]).map(a=>typeof a==='string'?a:(a.addr+(a.zone?` [${a.zone}]`:''))).join('\n')||'—'},
   {h:'Vacant Lots',       v:b=>b.lots!=null?b.lots:'—'},
   {h:'Assigned Rep',      v:b=>getLog(b.p).rep||'—'},
   {h:'Status',            v:b=>(STATUS_OPTS.find(o=>o.val===getLog(b.p).status)||{label:getLog(b.p).status||'—'}).label},
@@ -1220,5 +1326,23 @@ function executePrint(){
   win.document.close();
 }
 </script>
+
+<!-- Site Finder Modal -->
+<div id="site-finder-overlay" onclick="if(event.target===this)closeSiteFinder()">
+  <div id="site-finder-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3>📍 Site Finder — drop-by planner</h3>
+      <button class="btn" onclick="closeSiteFinder()">Close</button>
+    </div>
+    <div style="margin-bottom:10px;">
+      <select id="sf-zone-filter" onchange="renderSiteFinder()" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;">
+        <option value="">All cities</option>
+      </select>
+      <span style="font-size:11px;color:#888;margin-left:10px;">Showing builders with tagged site addresses</span>
+    </div>
+    <div id="sf-content"></div>
+  </div>
+</div>
+
 </body>
 </html>
