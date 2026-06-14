@@ -988,8 +988,14 @@ function render(){
   const fr=document.getElementById('f-rep').value;
   lastFiltered=builders.filter(b=>{
     const log=getLog(b.p);
-    if(msState.zone.size>0&&!msState.zone.has(b.zone))return false;
-    if(msState.saz.size>0&&!(b.siteAddresses||[]).some(sa=>{const a=typeof sa==='string'?{addr:sa,zone:''}:sa;return msState.saz.has(a.zone);}))return false;
+    // Combined city filter: office OR site city match from either selector
+    const anyCitySelected=msState.zone.size>0||msState.saz.size>0;
+    if(anyCitySelected){
+      const allSelected=new Set([...msState.zone,...msState.saz]);
+      const officeMatch=allSelected.has(b.zone);
+      const siteMatch=(b.siteAddresses||[]).some(sa=>{const a=typeof sa==='string'?{addr:sa,zone:''}:sa;return allSelected.has(a.zone);});
+      if(!officeMatch&&!siteMatch)return false;
+    }
     if(ft&&b.type!==ft)return false;
     if(fs&&log.status!==fs)return false;
     if(fp.size>0&&!fp.has(log.priority||''))return false;
