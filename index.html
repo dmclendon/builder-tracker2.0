@@ -272,16 +272,26 @@ tr:hover td{background:#fafaf8;}
 <!-- Print column picker -->
 <div class="print-overlay" id="print-overlay" style="display:none;" onclick="if(event.target===this)closePrintDialog()">
   <div class="print-dialog">
-    <h3>Choose columns to print</h3>
-    <p>Uncheck any columns you want to leave out.</p>
+    <h3>Print / Export View</h3>
+    <div id="print-filter-summary" style="font-size:11px;color:#555;background:#f0f4fa;border-radius:6px;padding:7px 10px;margin-bottom:12px;line-height:1.6;"></div>
+    <div style="margin-bottom:10px;">
+      <span style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Quick presets:</span>
+      <div class="print-toggle-row" style="margin-top:5px;">
+        <button onclick="applyPrintPreset('route')">📍 Route Day</button>
+        <button onclick="applyPrintPreset('outreach')">📧 Outreach</button>
+        <button onclick="applyPrintPreset('contacts')">👤 Contacts</button>
+        <button onclick="applyPrintPreset('full')">📋 Full Report</button>
+      </div>
+    </div>
     <div class="print-toggle-row">
       <button onclick="setPrintAll(true)">Select all</button>
       <button onclick="setPrintAll(false)">Deselect all</button>
     </div>
     <div class="print-col-grid" id="print-col-grid"></div>
     <div class="print-dialog-actions">
+      <span id="print-row-count" style="font-size:11px;color:#888;margin-right:auto;align-self:center;"></span>
       <button class="btn-print-cancel" onclick="closePrintDialog()">Cancel</button>
-      <button class="btn-print-go" onclick="executePrint()">Print</button>
+      <button class="btn-print-go" onclick="executePrint()">🖨 Print</button>
     </div>
   </div>
 </div>
@@ -682,6 +692,8 @@ async function loadAll(){
           if(info.genPhone!==undefined)b.genPhone=info.genPhone;
           if(info.contactEmail!==undefined)b.contactEmail=info.contactEmail;
           if(info.lots!==undefined)b.lots=info.lots===''?null:info.lots;
+          if(info.zone!==undefined)b.zone=info.zone;
+          if(info.type)b.type=info.type;
         }
         if(Array.isArray(info.siteAddresses))b.siteAddresses=info.siteAddresses.map(a=>typeof a==='string'?{addr:a,zone:''}:a);
       });
@@ -1253,37 +1265,85 @@ loadAll();
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
 </style>
 <script>
+// group label = separator in picker, no data col
 const PRINT_COLS=[
-  {h:'Builder',           v:b=>b.name||'—'},
-  {h:'Type',              v:b=>b.type||'—'},
-  {h:'Priority',          v:b=>({now:'Now',high:'High',med:'Med',low:'Low',new:'New'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
-  {h:'Office Quadrant',   v:b=>b.zone||'—'},
-  {h:'Contacts',          v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
-  {h:'Office / General Contacts', v:b=>[b.address,b.website].filter(Boolean).join('\n')||'—'},
-  {h:'Site addresses',    v:b=>(b.siteAddresses||[]).map(a=>typeof a==='string'?a:(a.addr+(a.zone?` [${a.zone}]`:''))).join('\n')||'—'},
-  {h:'Vacant Lots',       v:b=>b.lots!=null?b.lots:'—'},
-  {h:'Assigned Rep',      v:b=>getLog(b.p).rep||'—'},
-  {h:'Status',            v:b=>(STATUS_OPTS.find(o=>o.val===getLog(b.p).status)||{label:getLog(b.p).status||'—'}).label},
-  {h:'Last Activity',     v:b=>{const d=getLog(b.p).lastActivity;return d?new Date(d).toLocaleDateString():'—';}},
-  {h:'Email Outreach',    v:b=>{const l=getLog(b.p);const nt=raw=>parseNotes(raw||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n');const d=l.emailDate?new Date(l.emailDate).toLocaleDateString():'';return d?(d+(l.emailNote?'\n'+nt(l.emailNote):'')):(l.emailNote?nt(l.emailNote):'—');}},
-  {h:'LinkedIn Outreach', v:b=>{const l=getLog(b.p);const nt=raw=>parseNotes(raw||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n');const d=l.liDate?new Date(l.liDate).toLocaleDateString():'';return d?(d+(l.liNote?'\n'+nt(l.liNote):'')):(l.liNote?nt(l.liNote):'—');}},
-  {h:'Office Visits',     v:b=>parseNotes(getLog(b.p).officeVisitNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
-  {h:'Site Visits',       v:b=>parseNotes(getLog(b.p).siteVisitNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
-  {h:'Phone Calls',       v:b=>parseNotes(getLog(b.p).phoneNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
-  {h:'Angle',             v:b=>getLog(b.p).angle||'—'},
-  {h:'Action',            v:b=>getLog(b.p).action||'—'},
-  {h:'Next Steps',        v:b=>getLog(b.p).nextSteps||'—'},
-  {h:'General Notes',     v:b=>parseNotes(getLog(b.p).notes||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
+  {h:'Builder',                 group:'Builder Info', v:b=>b.name||'—'},
+  {h:'Type',                    group:'Builder Info', v:b=>b.type||'—'},
+  {h:'Priority',                group:'Builder Info', v:b=>({now:'Now',high:'High',med:'Med',low:'Low',new:'New'}[getLog(b.p).priority]||getLog(b.p).priority||'—')},
+  {h:'Status',                  group:'Builder Info', v:b=>(STATUS_OPTS.find(o=>o.val===getLog(b.p).status)||{label:getLog(b.p).status||'—'}).label},
+  {h:'Assigned Rep',            group:'Builder Info', v:b=>getLog(b.p).rep||'—'},
+  {h:'Office Quadrant',         group:'Location',     v:b=>b.zone||'—'},
+  {h:'Office / General Contacts',group:'Location',    v:b=>[b.address,b.genPhone,b.contactEmail,b.website].filter(Boolean).join('\n')||'—'},
+  {h:'Site Addresses',          group:'Location',     v:b=>(b.siteAddresses||[]).map(a=>typeof a==='string'?a:(a.addr+(a.zone?` [${a.zone}]`:''))).join('\n')||'—'},
+  {h:'Vacant Lots',             group:'Location',     v:b=>b.lots!=null?b.lots:'—'},
+  {h:'Contacts',                group:'People',       v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
+  {h:'Last Activity',           group:'People',       v:b=>{const d=getLog(b.p).lastActivity;return d?new Date(d).toLocaleDateString():'—';}},
+  {h:'Email Outreach',          group:'Outreach',     v:b=>{const l=getLog(b.p);const nt=raw=>parseNotes(raw||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n');const d=l.emailDate?new Date(l.emailDate).toLocaleDateString():'';return d?(d+(l.emailNote?'\n'+nt(l.emailNote):'')):(l.emailNote?nt(l.emailNote):'—');}},
+  {h:'LinkedIn Outreach',       group:'Outreach',     v:b=>{const l=getLog(b.p);const nt=raw=>parseNotes(raw||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n');const d=l.liDate?new Date(l.liDate).toLocaleDateString():'';return d?(d+(l.liNote?'\n'+nt(l.liNote):'')):(l.liNote?nt(l.liNote):'—');}},
+  {h:'Phone Calls',             group:'Outreach',     v:b=>parseNotes(getLog(b.p).phoneNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
+  {h:'Office Visits',           group:'Visit Logs',   v:b=>parseNotes(getLog(b.p).officeVisitNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
+  {h:'Site Visits',             group:'Visit Logs',   v:b=>parseNotes(getLog(b.p).siteVisitNote||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
+  {h:'Angle',                   group:'Strategy',     v:b=>getLog(b.p).angle||'—'},
+  {h:'Action',                  group:'Strategy',     v:b=>getLog(b.p).action||'—'},
+  {h:'Next Steps',              group:'Strategy',     v:b=>getLog(b.p).nextSteps||'—'},
+  {h:'General Notes',           group:'Strategy',     v:b=>parseNotes(getLog(b.p).notes||'').map(e=>(e.ts?`[${e.ts}] `:'')+e.text).join('\n')||'—'},
 ];
-// remember checked state across opens
+// Presets: array of column h values to check
+const PRINT_PRESETS={
+  route:   ['Builder','Priority','Office Quadrant','Site Addresses','Contacts','Next Steps'],
+  outreach:['Builder','Type','Priority','Status','Assigned Rep','Email Outreach','LinkedIn Outreach','Phone Calls','General Notes'],
+  contacts:['Builder','Type','Office Quadrant','Office / General Contacts','Contacts','Site Addresses'],
+  full:    PRINT_COLS.map(c=>c.h),
+};
+// Persist checked state by column header across opens
+let printColChecked=Object.fromEntries(PRINT_COLS.map(c=>[c.h,true]));
+
 function printView(){
+  // Build filter summary
+  const parts=[];
+  const search=document.getElementById('search').value.trim();
+  if(search)parts.push(`Search: "${search}"`);
+  if(msState.zone.size)parts.push(`Office city: ${[...msState.zone].join(', ')}`);
+  if(msState.saz.size)parts.push(`Site city: ${[...msState.saz].join(', ')}`);
+  const ft=document.getElementById('f-type').value;if(ft)parts.push(`Type: ${ft}`);
+  const fs=document.getElementById('f-status').value;if(fs)parts.push(`Status: ${STATUS_LABEL[fs]||fs}`);
+  if(activePF.size)parts.push(`Priority: ${[...activePF].join(', ')}`);
+  const fr=document.getElementById('f-rep').value;if(fr&&fr!=='__none__')parts.push(`Rep: ${fr}`);
+  const sumEl=document.getElementById('print-filter-summary');
+  sumEl.innerHTML=parts.length
+    ?`<strong>Active filters:</strong> ${parts.join(' &nbsp;·&nbsp; ')}`
+    :'<em>No filters active — all builders will print.</em>';
+  // Row count
+  document.getElementById('print-row-count').textContent=`${lastFiltered.length} builder${lastFiltered.length!==1?'s':''} will print`;
+  // Build column grid grouped
+  const groups=[...new Set(PRINT_COLS.map(c=>c.group))];
   const grid=document.getElementById('print-col-grid');
-  grid.innerHTML=PRINT_COLS.map((c,i)=>`<label><input type="checkbox" data-col-index="${i}" checked> ${c.h}</label>`).join('');
+  grid.innerHTML=groups.map(g=>{
+    const cols=PRINT_COLS.filter(c=>c.group===g);
+    return`<div style="grid-column:1/-1;font-size:10px;font-weight:700;color:#1a3a6b;text-transform:uppercase;letter-spacing:.5px;margin-top:10px;border-bottom:1px solid #e0e0de;padding-bottom:2px;">${g}</div>`
+      +cols.map(c=>{const i=PRINT_COLS.indexOf(c);return`<label><input type="checkbox" data-col-index="${i}" ${printColChecked[c.h]?'checked':''}> ${c.h}</label>`;}).join('');
+  }).join('');
+  // save state on change
+  grid.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{
+    const c=PRINT_COLS[parseInt(cb.dataset.colIndex)];
+    if(c)printColChecked[c.h]=cb.checked;
+  }));
   document.getElementById('print-overlay').style.display='flex';
 }
 function closePrintDialog(){document.getElementById('print-overlay').style.display='none';}
 function setPrintAll(on){
-  document.querySelectorAll('#print-col-grid input').forEach(cb=>cb.checked=on);
+  document.querySelectorAll('#print-col-grid input').forEach(cb=>{
+    cb.checked=on;
+    const c=PRINT_COLS[parseInt(cb.dataset.colIndex)];
+    if(c)printColChecked[c.h]=on;
+  });
+}
+function applyPrintPreset(key){
+  const set=new Set(PRINT_PRESETS[key]||[]);
+  document.querySelectorAll('#print-col-grid input').forEach(cb=>{
+    const c=PRINT_COLS[parseInt(cb.dataset.colIndex)];
+    if(c){cb.checked=set.has(c.h);printColChecked[c.h]=cb.checked;}
+  });
 }
 function executePrint(){
   const checkedIndices=new Set([...document.querySelectorAll('#print-col-grid input:checked')].map(cb=>parseInt(cb.dataset.colIndex)));
