@@ -275,7 +275,12 @@ tr:hover td{background:#fafaf8;}
 <div class="print-overlay" id="print-overlay" style="display:none;" onclick="if(event.target===this)closePrintDialog()">
   <div class="print-dialog">
     <h3>Print / Export View</h3>
-    <div id="print-filter-summary" style="font-size:11px;color:#555;background:#f0f4fa;border-radius:6px;padding:7px 10px;margin-bottom:12px;line-height:1.6;"></div>
+    <div id="print-filter-summary" style="font-size:11px;color:#555;background:#f0f4fa;border-radius:6px;padding:7px 10px;margin-bottom:10px;line-height:1.6;"></div>
+    <div id="print-selection-row" style="display:none;margin-bottom:10px;padding:7px 10px;background:#FFF8E6;border:1px solid #f0c040;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:10px;">
+      <span id="print-selection-label" style="flex:1;"></span>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;"><input type="radio" name="print-scope" id="print-scope-selected" style="accent-color:#1a3a6b;"> Selected rows only</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="print-scope" id="print-scope-all" checked style="accent-color:#1a3a6b;"> All filtered rows</label>
+    </div>
     <div style="margin-bottom:10px;">
       <span style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Quick presets:</span>
       <div class="print-toggle-row" style="margin-top:5px;">
@@ -850,6 +855,8 @@ function openSiteFinder(){
 function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';}
 function renderSiteFinder(){
   const zf=document.getElementById('sf-zone-filter').value;
+  const kw=(document.getElementById('sf-neighborhood')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
   // Build map of zone → entries from actual data
   const zoneMap={};
   builders.forEach(b=>{
@@ -861,16 +868,65 @@ function renderSiteFinder(){
     });
   });
   const zones=zf?[zf]:Object.keys(zoneMap).sort();
-  let html='';let anyResults=false;
+  let html='';let totalEntries=0;
   zones.forEach(zone=>{
-    const entries=zoneMap[zone]||[];
+    let entries=zoneMap[zone]||[];
     if(!entries.length)return;
-    anyResults=true;
+    if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
+    if(!entries.length)return;
+    totalEntries+=entries.length;
     html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} site${entries.length!==1?'s':''})</div>`;
     entries.forEach(e=>{html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
   });
-  if(!anyResults)html=`<div class="sf-no-results">${zf?`No site addresses tagged as "${esc(zf)}" yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
+  if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${zf?' in '+esc(zf):''}. Try a different keyword.`:zf?`No site addresses tagged as "${esc(zf)}" yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
   document.getElementById('sf-content').innerHTML=html;
+  const cnt=document.getElementById('sf-count');
+  if(cnt)cnt.textContent=totalEntries?`${totalEntries} site${totalEntries!==1?'s':''} found`:'';
+}
+function printSiteFinder(){
+  const zf=document.getElementById('sf-zone-filter').value;
+  const kw=(document.getElementById('sf-neighborhood')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
+  const zoneMap={};
+  builders.forEach(b=>{
+    (b.siteAddresses||[]).forEach(sa=>{
+      const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
+      if(!a.addr.trim()||!a.zone)return;
+      if(!zoneMap[a.zone])zoneMap[a.zone]=[];
+      zoneMap[a.zone].push({builder:b.name,addr:a.addr});
+    });
+  });
+  const zones=zf?[zf]:Object.keys(zoneMap).sort();
+  let blocks='';let zoneCount=0;
+  zones.forEach(zone=>{
+    let entries=zoneMap[zone]||[];
+    if(!entries.length)return;
+    if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
+    if(!entries.length)return;
+    zoneCount++;
+    const rows=entries.map(e=>`<tr><td class="td-builder">${e.builder}</td><td class="td-addr">${e.addr}</td></tr>`).join('');
+    blocks+=`<div class="zone-page"><div class="zone-header">📍 ${zone} <span class="zone-count">${entries.length} site${entries.length!==1?'s':''}</span></div><table><thead><tr><th>Builder</th><th>Site Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  const subtitle=[zf?`City: ${zf}`:'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
+  const css=`
+    body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:12px;}
+    .no-print-header{padding:16px 20px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;}
+    .no-print-header h2{margin:0;font-size:15px;}
+    .no-print-header p{margin:0;color:#666;font-size:11px;}
+    .no-print-header button{margin-left:auto;padding:6px 18px;font-size:13px;cursor:pointer;background:#1a3c5e;color:#fff;border:none;border-radius:4px;}
+    .zone-page{padding:20px 24px 16px;page-break-after:always;break-after:page;}
+    .zone-page:last-child{page-break-after:avoid;break-after:avoid;}
+    .zone-header{font-size:16px;font-weight:700;color:#1a3c5e;border-bottom:2px solid #1a3c5e;padding-bottom:6px;margin-bottom:10px;}
+    .zone-count{font-size:12px;font-weight:400;color:#666;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:5px 8px;background:#f0f4f8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #ccc;}
+    .td-builder{padding:5px 8px;font-weight:600;width:220px;border-bottom:1px solid #eee;vertical-align:top;}
+    .td-addr{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}
+    @media print{.no-print-header{display:none;}}
+  `;
+  const w=window.open('','_blank','width=860,height=750');
+  w.document.write(`<!DOCTYPE html><html><head><title>Site Finder — ${subtitle||'All'}</title><style>${css}</style></head><body><div class="no-print-header"><div><h2>📍 Site Finder</h2><p>${subtitle||'All cities'} — ${zoneCount} area${zoneCount!==1?'s':''} — ${new Date().toLocaleDateString()}</p></div><button onclick="window.print()">🖨 Print All</button></div>${blocks||'<div style="padding:30px;color:#888;">No results to print.</div>'}</body></html>`);
+  w.document.close();
 }
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
@@ -1341,8 +1397,21 @@ function printView(){
   sumEl.innerHTML=parts.length
     ?`<strong>Active filters:</strong> ${parts.join(' &nbsp;·&nbsp; ')}`
     :'<em>No filters active — all builders will print.</em>';
+  // Selected rows option
+  const selectedIds=getSelectedBuilderIds();
+  const selRow=document.getElementById('print-selection-row');
+  const selLabel=document.getElementById('print-selection-label');
+  if(selectedIds.length>0){
+    selRow.style.display='flex';
+    selLabel.textContent=`⚡ You have ${selectedIds.length} builder${selectedIds.length!==1?'s':''} checked in the table.`;
+    document.getElementById('print-scope-selected').checked=true;
+  } else {
+    selRow.style.display='none';
+    document.getElementById('print-scope-all').checked=true;
+  }
   // Row count
-  document.getElementById('print-row-count').textContent=`${lastFiltered.length} builder${lastFiltered.length!==1?'s':''} will print`;
+  const printCount=selectedIds.length>0?selectedIds.length:lastFiltered.length;
+  document.getElementById('print-row-count').textContent=`${printCount} builder${printCount!==1?'s':''} will print`;
   // Build column grid grouped
   const groups=[...new Set(PRINT_COLS.map(c=>c.group))];
   const grid=document.getElementById('print-col-grid');
@@ -1376,7 +1445,9 @@ function applyPrintPreset(key){
 function executePrint(){
   const checkedIndices=new Set([...document.querySelectorAll('#print-col-grid input:checked')].map(cb=>parseInt(cb.dataset.colIndex)));
   closePrintDialog();
-  const filtered=lastFiltered;
+  const useSelected=document.getElementById('print-scope-selected')&&document.getElementById('print-scope-selected').checked;
+  const selectedIds=useSelected?new Set(getSelectedBuilderIds()):null;
+  const filtered=selectedIds?lastFiltered.filter(b=>selectedIds.has(b.p)):lastFiltered;
   if(!filtered.length){alert('No rows to print.');return;}
   const cols=PRINT_COLS.filter((_,i)=>checkedIndices.has(i));
   if(!cols.length){alert('Select at least one column.');printView();return;}
@@ -1513,13 +1584,17 @@ function launchMaps(){
   <div id="site-finder-modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <h3>📍 Site Finder — drop-by planner</h3>
-      <button class="btn" onclick="closeSiteFinder()">Close</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="font-size:12px;padding:5px 12px;" onclick="printSiteFinder()">🖨 Print</button>
+        <button class="btn" onclick="closeSiteFinder()">Close</button>
+      </div>
     </div>
-    <div style="margin-bottom:10px;">
-      <select id="sf-zone-filter" onchange="renderSiteFinder()" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+      <select id="sf-zone-filter" onchange="renderSiteFinder()" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;min-width:180px;">
         <option value="">All cities</option>
       </select>
-      <span style="font-size:11px;color:#888;margin-left:10px;">Showing builders with tagged site addresses</span>
+      <input id="sf-neighborhood" placeholder="Filter by neighborhood / street…" oninput="renderSiteFinder()" style="font-size:12px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:180px;font-family:inherit;"/>
+      <span id="sf-count" style="font-size:11px;color:#888;white-space:nowrap;"></span>
     </div>
     <div id="sf-content"></div>
   </div>
