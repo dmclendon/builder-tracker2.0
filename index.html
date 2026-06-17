@@ -581,6 +581,14 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').repla
 /* ── Note log helpers ── */
 function parseNotes(str){
   if(!str)return[];
+  // Handle notes accidentally stored as JSON array
+  const trimmed=str.trim();
+  if(trimmed.startsWith('[{')){
+    try{
+      const parsed=JSON.parse(trimmed);
+      if(Array.isArray(parsed))return parsed.map(e=>({ts:e.ts||e.day||'',text:e.text||''})).filter(e=>e.text);
+    }catch(e){}
+  }
   const entries=[];
   str.split('\n').forEach(line=>{
     line=line.trim();if(!line)return;
@@ -1293,7 +1301,7 @@ const PRINT_COLS=[
   {h:'Assigned Rep',            group:'Builder Info', v:b=>getLog(b.p).rep||'—'},
   {h:'Office Quadrant',         group:'Location',     v:b=>b.zone||'—'},
   {h:'Office / General Contacts',group:'Location',    v:b=>[b.address,b.genPhone,b.contactEmail,b.website].filter(Boolean).join('\n')||'—'},
-  {h:'Site Addresses',          group:'Location',     v:b=>(b.siteAddresses||[]).map(a=>typeof a==='string'?a:(a.addr+(a.zone?` [${a.zone}]`:''))).join('\n')||'—'},
+  {h:'Site Addresses',          group:'Location',     v:b=>{const all=(b.siteAddresses||[]).map(a=>typeof a==='string'?{addr:a,zone:''}:a);const filtered=msState.saz.size>0?all.filter(a=>msState.saz.has(a.zone)):all;return filtered.map(a=>a.addr+(a.zone?` [${a.zone}]`:'')).join('\n')||'—';}},
   {h:'Vacant Lots',             group:'Location',     v:b=>b.lots!=null?b.lots:'—'},
   {h:'Contacts',                group:'People',       v:b=>(b.contacts||[]).map(c=>[c.name,c.title,c.phone,c.email].filter(Boolean).join(' | ')).join('\n')||'—'},
   {h:'Last Activity',           group:'People',       v:b=>{const d=getLog(b.p).lastActivity;return d?new Date(d).toLocaleDateString():'—';}},
