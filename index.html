@@ -844,17 +844,26 @@ function populateZoneDropdowns(){
   const md=document.getElementById('m-zone');
   if(md){const cur=md.value;md.innerHTML='<option value="">— Select city —</option>'+ZONE_OPTIONS.filter(z=>z).map(z=>`<option value="${esc(z)}"${z===cur?' selected':''}>${esc(z)}</option>`).join('');}
 }
+const sfMs=new Set();
 function openSiteFinder(){
-  // Populate dropdown from ZONE_OPTIONS
-  const sel=document.getElementById('sf-zone-filter');
-  const cur=sel.value;
-  sel.innerHTML='<option value="">All cities</option>'+ZONE_OPTIONS.filter(z=>z).map(z=>`<option value="${esc(z)}"${z===cur?' selected':''}>${esc(z)}</option>`).join('');
   document.getElementById('site-finder-overlay').style.display='flex';
+  buildSfMsOpts();
   renderSiteFinder();
 }
-function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';}
+function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';document.getElementById('sf-ms-panel').style.display='none';}
+function toggleSfMs(){const p=document.getElementById('sf-ms-panel');p.style.display=p.style.display==='none'?'block':'none';}
+function buildSfMsOpts(filter=''){
+  const opts=document.getElementById('sf-ms-opts');
+  const fl=filter.toLowerCase();
+  opts.innerHTML=ZONE_OPTIONS.filter(z=>z&&(!fl||z.toLowerCase().includes(fl))).map(z=>`<label class="ms-opt"><input type="checkbox" ${sfMs.has(z)?'checked':''} onchange="toggleSfCity('${z.replace(/'/g,"\\'")}',this.checked)"> ${esc(z)}</label>`).join('');
+}
+function filterSfMsOpts(val){buildSfMsOpts(val);}
+function toggleSfCity(city,checked){if(checked)sfMs.add(city);else sfMs.delete(city);updateSfMsBtn();renderSiteFinder();}
+function updateSfMsBtn(){const btn=document.getElementById('sf-ms-btn');btn.textContent=sfMs.size===0?'All cities ▾':sfMs.size===1?[...sfMs][0]+' ▾':`${sfMs.size} cities ▾`;}
+function clearSfMs(){sfMs.clear();buildSfMsOpts();updateSfMsBtn();renderSiteFinder();}
+document.addEventListener('click',e=>{const w=document.getElementById('sf-ms-wrap');if(w&&!w.contains(e.target)){const p=document.getElementById('sf-ms-panel');if(p)p.style.display='none';}});
 function renderSiteFinder(){
-  const zf=document.getElementById('sf-zone-filter').value;
+  const selectedZones=sfMs.size>0?[...sfMs]:null;
   const kw=(document.getElementById('sf-neighborhood')||{}).value||'';
   const kwLow=kw.trim().toLowerCase();
   // Build map of zone → entries from actual data
@@ -867,7 +876,7 @@ function renderSiteFinder(){
       zoneMap[a.zone].push({builder:b.name,addr:a.addr});
     });
   });
-  const zones=zf?[zf]:Object.keys(zoneMap).sort();
+  const zones=selectedZones||Object.keys(zoneMap).sort();
   let html='';let totalEntries=0;
   zones.forEach(zone=>{
     let entries=zoneMap[zone]||[];
@@ -878,13 +887,12 @@ function renderSiteFinder(){
     html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} site${entries.length!==1?'s':''})</div>`;
     entries.forEach(e=>{html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
   });
-  if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${zf?' in '+esc(zf):''}. Try a different keyword.`:zf?`No site addresses tagged as "${esc(zf)}" yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
+  if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${sfMs.size?` in selected cities`:''}. Try a different keyword.`:sfMs.size?`No site addresses tagged for selected cities yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
   document.getElementById('sf-content').innerHTML=html;
   const cnt=document.getElementById('sf-count');
   if(cnt)cnt.textContent=totalEntries?`${totalEntries} site${totalEntries!==1?'s':''} found`:'';
 }
 function printSiteFinder(){
-  const zf=document.getElementById('sf-zone-filter').value;
   const kw=(document.getElementById('sf-neighborhood')||{}).value||'';
   const kwLow=kw.trim().toLowerCase();
   const zoneMap={};
@@ -896,7 +904,8 @@ function printSiteFinder(){
       zoneMap[a.zone].push({builder:b.name,addr:a.addr});
     });
   });
-  const zones=zf?[zf]:Object.keys(zoneMap).sort();
+  const selectedZonesPrint=sfMs.size>0?[...sfMs]:null;
+  const zones=selectedZonesPrint||Object.keys(zoneMap).sort();
   let blocks='';let zoneCount=0;
   zones.forEach(zone=>{
     let entries=zoneMap[zone]||[];
@@ -907,7 +916,7 @@ function printSiteFinder(){
     const rows=entries.map(e=>`<tr><td class="td-builder">${e.builder}</td><td class="td-addr">${e.addr}</td></tr>`).join('');
     blocks+=`<div class="zone-page"><div class="zone-header">📍 ${zone} <span class="zone-count">${entries.length} site${entries.length!==1?'s':''}</span></div><table><thead><tr><th>Builder</th><th>Site Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   });
-  const subtitle=[zf?`City: ${zf}`:'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
+  const subtitle=[sfMs.size>0?[...sfMs].join(', '):'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
   const css=`
     body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:12px;}
     .no-print-header{padding:16px 20px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;}
@@ -1590,9 +1599,14 @@ function launchMaps(){
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-      <select id="sf-zone-filter" onchange="renderSiteFinder()" style="font-size:13px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;min-width:180px;">
-        <option value="">All cities</option>
-      </select>
+      <div class="ms-wrap" style="min-width:200px;" id="sf-ms-wrap">
+        <button class="ms-btn" id="sf-ms-btn" onclick="toggleSfMs()" type="button">All cities ▾</button>
+        <div class="ms-panel" id="sf-ms-panel" style="display:none;min-width:220px;">
+          <input class="ms-search" placeholder="Search cities…" oninput="filterSfMsOpts(this.value)" style="font-size:12px;padding:4px 7px;border:1px solid #ccc;border-radius:4px;width:calc(100% - 14px);margin-bottom:4px;font-family:inherit;"/>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px;"><button onclick="clearSfMs()" style="font-size:10px;padding:1px 6px;cursor:pointer;border:1px solid #ccc;border-radius:3px;background:#fff;">Clear</button></div>
+          <div id="sf-ms-opts" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div>
       <input id="sf-neighborhood" placeholder="Filter by neighborhood / street…" oninput="renderSiteFinder()" style="font-size:12px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:180px;font-family:inherit;"/>
       <span id="sf-count" style="font-size:11px;color:#888;white-space:nowrap;"></span>
     </div>
