@@ -873,7 +873,7 @@ function renderSiteFinder(){
       const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
       if(!a.addr.trim()||!a.zone)return;
       if(!zoneMap[a.zone])zoneMap[a.zone]=[];
-      zoneMap[a.zone].push({builder:b.name,addr:a.addr});
+      zoneMap[a.zone].push({builder:b.name,addr:a.addr,priority:getLog(b.p).priority||''});
     });
   });
   const zones=selectedZones||Object.keys(zoneMap).sort();
@@ -885,7 +885,7 @@ function renderSiteFinder(){
     if(!entries.length)return;
     totalEntries+=entries.length;
     html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} site${entries.length!==1?'s':''})</div>`;
-    entries.forEach(e=>{html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
+    entries.forEach(e=>{const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}${ps}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
   });
   if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${sfMs.size?` in selected cities`:''}. Try a different keyword.`:sfMs.size?`No site addresses tagged for selected cities yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
   document.getElementById('sf-content').innerHTML=html;
@@ -901,7 +901,7 @@ function printSiteFinder(){
       const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
       if(!a.addr.trim()||!a.zone)return;
       if(!zoneMap[a.zone])zoneMap[a.zone]=[];
-      zoneMap[a.zone].push({builder:b.name,addr:a.addr});
+      zoneMap[a.zone].push({builder:b.name,addr:a.addr,priority:getLog(b.p).priority||''});
     });
   });
   const selectedZonesPrint=sfMs.size>0?[...sfMs]:null;
@@ -913,7 +913,7 @@ function printSiteFinder(){
     if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
     if(!entries.length)return;
     zoneCount++;
-    const rows=entries.map(e=>`<tr><td class="td-builder">${e.builder}</td><td class="td-addr">${e.addr}</td></tr>`).join('');
+    const rows=entries.map(e=>{const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';return`<tr><td class="td-builder">${e.builder}${ps}</td><td class="td-addr">${e.addr}</td></tr>`;}).join('');
     blocks+=`<div class="zone-page"><div class="zone-header">📍 ${zone} <span class="zone-count">${entries.length} site${entries.length!==1?'s':''}</span></div><table><thead><tr><th>Builder</th><th>Site Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   });
   const subtitle=[sfMs.size>0?[...sfMs].join(', '):'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
