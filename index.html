@@ -71,8 +71,6 @@ tr:hover td{background:#fafaf8;}
 .fp-btn.on-low{background:#bbb;color:#fff;border-color:#bbb;}
 .fp-btn.on-new{background:#7B2FBE;color:#fff;border-color:#7B2FBE;}
 .fp-btn.on-zone{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
-#route-bar{display:none;}
-#route-bar.visible{display:flex !important;}
 .ms-wrap{position:relative;display:inline-block;}
 .ms-btn{font-size:12px;padding:3px 8px;border:1px solid #b0c0d8;border-radius:4px;background:#fff;cursor:pointer;min-width:170px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px;white-space:nowrap;color:#333;}
 .ms-btn.has-selection{border-color:#0C447C;background:#E6F1FB;color:#0C447C;font-weight:600;}
@@ -284,8 +282,7 @@ tr:hover td{background:#fafaf8;}
     <div style="margin-bottom:10px;">
       <span style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Quick presets:</span>
       <div class="print-toggle-row" style="margin-top:5px;">
-        <button onclick="applyPrintPreset('route')">📍 Route Day</button>
-        <button onclick="applyPrintPreset('outreach')">📧 Outreach</button>
+<button onclick="applyPrintPreset('outreach')">📧 Outreach</button>
         <button onclick="applyPrintPreset('contacts')">👤 Contacts</button>
         <button onclick="applyPrintPreset('full')">📋 Full Report</button>
       </div>
@@ -363,30 +360,14 @@ tr:hover td{background:#fafaf8;}
         <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add builder</button>
       </div>
       <div class="filters" style="background:#f0f4fa;border-top:none;border-radius:0 0 6px 6px;padding:6px 12px;gap:8px;align-items:center;">
-        <span style="font-size:10px;color:#1a3a6b;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;">📍 Route &amp; Area</span>
-        <div class="ms-wrap" id="ms-zone-wrap">
-          <button class="ms-btn" id="ms-zone-btn" onclick="toggleMs('zone')" type="button"><span id="ms-zone-label">Office city…</span><span class="ms-caret">▼</span></button>
-          <div class="ms-panel" id="ms-zone-panel">
-            <input class="ms-search" placeholder="Search cities…" oninput="filterMsOpts('zone',this.value)"/>
-            <span class="ms-clear" onclick="clearMs('zone')">✕ Clear selection</span>
-            <div id="ms-zone-opts"></div>
-          </div>
-        </div>
-        <div class="ms-wrap" id="ms-saz-wrap">
-          <button class="ms-btn" id="ms-saz-btn" onclick="toggleMs('saz')" type="button"><span id="ms-saz-label">Site city…</span><span class="ms-caret">▼</span></button>
-          <div class="ms-panel" id="ms-saz-panel">
-            <input class="ms-search" placeholder="Search cities…" oninput="filterMsOpts('saz',this.value)"/>
-            <span class="ms-clear" onclick="clearMs('saz')">✕ Clear selection</span>
-            <div id="ms-saz-opts"></div>
-          </div>
-        </div>
         <button class="btn" style="background:#0C447C;color:#fff;border-color:#0C447C;font-size:12px;padding:4px 10px;" onclick="openSiteFinder()">📍 Site Finder</button>
+        <button class="btn" style="background:#2E6DA4;color:#fff;border-color:#2E6DA4;font-size:12px;padding:4px 10px;" onclick="openOfficeFinder()">🏢 Office Finder</button>
+        <button class="btn" style="background:#5B4A8A;color:#fff;border-color:#5B4A8A;font-size:12px;padding:4px 10px;" onclick="openAreaPrint()">🗺 Area Print</button>
       </div>
       <div class="edit-hint"><i class="ti ti-pencil" style="font-size:12px;"></i> Click any field to edit — all changes save live to the shared Google Sheet.</div>
       <div class="scroll-wrap">
         <table>
           <colgroup>
-            <col style="width:36px">
             <col style="width:210px">
             <col style="width:220px">
             <col style="width:110px">
@@ -410,7 +391,6 @@ tr:hover td{background:#fafaf8;}
           </colgroup>
           <thead>
             <tr>
-              <th style="width:32px;text-align:center;padding:4px;"><input type="checkbox" id="chk-all" title="Select all" onchange="toggleSelectAll(this.checked)" style="cursor:pointer;accent-color:#1a3a6b;"/></th>
               <th class="col-freeze-1">Builder</th>
               <th>Priority</th>
               <th>Office Quadrant</th>
@@ -850,7 +830,7 @@ function openSiteFinder(){
   buildSfMsOpts();
   renderSiteFinder();
 }
-function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';document.getElementById('sf-ms-panel').style.display='none';}
+function closeSiteFinder(){document.getElementById('site-finder-overlay').style.display='none';document.getElementById('sf-ms-panel').style.display='none';clearFinderRoute('sf');}
 function toggleSfMs(){const p=document.getElementById('sf-ms-panel');p.style.display=p.style.display==='none'?'block':'none';}
 function buildSfMsOpts(filter=''){
   const opts=document.getElementById('sf-ms-opts');
@@ -883,12 +863,15 @@ function renderSiteFinder(){
     if(!entries.length)return;
     if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
     if(!entries.length)return;
+    const PORD_SF={now:0,high:1,med:2,low:3,new:4};
+    entries.sort((a,b)=>(PORD_SF[a.priority]??99)-(PORD_SF[b.priority]??99));
     totalEntries+=entries.length;
     html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} site${entries.length!==1?'s':''})</div>`;
-    entries.forEach(e=>{const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';html+=`<div class="sf-row"><div class="sf-builder">${esc(e.builder)}${ps}</div><div class="sf-addr">${esc(e.addr)}</div></div>`;});
+    entries.forEach(e=>{html+=finderRow('sf',e.builder,e.addr,e.priority);});
   });
   if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${sfMs.size?` in selected cities`:''}. Try a different keyword.`:sfMs.size?`No site addresses tagged for selected cities yet.`:'No site addresses have been tagged with a city yet. Use the city dropdown on each site address entry in the table.'}</div>`;
   document.getElementById('sf-content').innerHTML=html;
+  updateFinderRouteBar('sf');
   const cnt=document.getElementById('sf-count');
   if(cnt)cnt.textContent=totalEntries?`${totalEntries} site${totalEntries!==1?'s':''} found`:'';
 }
@@ -913,7 +896,7 @@ function printSiteFinder(){
     if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
     if(!entries.length)return;
     zoneCount++;
-    const rows=entries.map(e=>{const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';return`<tr><td class="td-builder">${e.builder}${ps}</td><td class="td-addr">${e.addr}</td></tr>`;}).join('');
+    const rows=entries.map(e=>{const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';return`<tr><td class="td-builder">${e.builder}${ps}</td><td class="td-addr">${e.addr}</td></tr><tr class="notes-gap"><td colspan="2" style="padding:2px 8px 18px;border-bottom:1px solid #ddd;"><span style="font-size:9px;color:#bbb;font-style:italic;">notes:</span><div style="border-bottom:1px dotted #ccc;margin-top:14px;"></div></td></tr>`;}).join('');
     blocks+=`<div class="zone-page"><div class="zone-header">📍 ${zone} <span class="zone-count">${entries.length} site${entries.length!==1?'s':''}</span></div><table><thead><tr><th>Builder</th><th>Site Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   });
   const subtitle=[sfMs.size>0?[...sfMs].join(', '):'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
@@ -937,6 +920,209 @@ function printSiteFinder(){
   w.document.write(`<!DOCTYPE html><html><head><title>Site Finder — ${subtitle||'All'}</title><style>${css}</style></head><body><div class="no-print-header"><div><h2>📍 Site Finder</h2><p>${subtitle||'All cities'} — ${zoneCount} area${zoneCount!==1?'s':''} — ${new Date().toLocaleDateString()}</p></div><button onclick="window.print()">🖨 Print All</button></div>${blocks||'<div style="padding:30px;color:#888;">No results to print.</div>'}</body></html>`);
   w.document.close();
 }
+
+// ── Area Print ─────────────────────────────────────────────
+const apMs=new Set();
+function openAreaPrint(){
+  document.getElementById('area-print-overlay').style.display='flex';
+  buildApMsOpts();
+  updateApMsBtn();
+  renderAreaPreview();
+}
+function closeAreaPrint(){document.getElementById('area-print-overlay').style.display='none';document.getElementById('ap-ms-panel').style.display='none';clearFinderRoute('ap');}
+function toggleApMs(){const p=document.getElementById('ap-ms-panel');p.style.display=p.style.display==='none'?'block':'none';}
+function buildApMsOpts(filter=''){
+  const fl=filter.toLowerCase();
+  // Collect all cities that have any data
+  const activeCities=new Set();
+  builders.forEach(b=>{if(b.zone)activeCities.add(b.zone);(b.siteAddresses||[]).forEach(sa=>{const a=typeof sa==='string'?{zone:''}:sa;if(a.zone)activeCities.add(a.zone);});});
+  const opts=[...ZONE_OPTIONS.filter(z=>z&&activeCities.has(z)&&(!fl||z.toLowerCase().includes(fl)))];
+  document.getElementById('ap-ms-opts').innerHTML=opts.map(z=>`<label class="ms-opt"><input type="checkbox" ${apMs.has(z)?'checked':''} onchange="toggleApCity('${z.replace(/'/g,"\\'")}',this.checked)"> ${esc(z)}</label>`).join('');
+}
+function filterApMsOpts(val){buildApMsOpts(val);}
+function toggleApCity(city,checked){if(checked)apMs.add(city);else apMs.delete(city);updateApMsBtn();renderAreaPreview();}
+function updateApMsBtn(){const btn=document.getElementById('ap-ms-btn');btn.textContent=apMs.size===0?'All cities ▾':apMs.size===1?[...apMs][0]+' ▾':`${apMs.size} cities ▾`;}
+function clearApMs(){apMs.clear();buildApMsOpts();updateApMsBtn();renderAreaPreview();}
+document.addEventListener('click',e=>{const w=document.getElementById('ap-ms-wrap');if(w&&!w.contains(e.target)){const p=document.getElementById('ap-ms-panel');if(p)p.style.display='none';}});
+function _buildApCityMap(){
+  const PORD_AP={now:0,high:1,med:2,low:3,new:4};
+  const cityMap={};
+  const ensure=z=>{if(!cityMap[z])cityMap[z]={offices:[],sites:[]};};
+  builders.forEach(b=>{
+    const pri=getLog(b.p).priority||'';
+    if(b.zone&&b.address&&b.address.trim()){ensure(b.zone);cityMap[b.zone].offices.push({builder:b.name,addr:b.address.trim(),priority:pri});}
+    (b.siteAddresses||[]).forEach(sa=>{
+      const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
+      if(a.zone&&a.addr.trim()){ensure(a.zone);cityMap[a.zone].sites.push({builder:b.name,addr:a.addr.trim(),priority:pri});}
+    });
+  });
+  const s=arr=>arr.sort((a,b2)=>(PORD_AP[a.priority]??99)-(PORD_AP[b2.priority]??99));
+  Object.values(cityMap).forEach(c=>{s(c.offices);s(c.sites);});
+  return cityMap;
+}
+function renderAreaPreview(){
+  const kw=(document.getElementById('ap-keyword')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
+  const cityMap=_buildApCityMap();
+  const zones=apMs.size>0?[...apMs]:Object.keys(cityMap).sort();
+  let html='';let total=0;
+  zones.forEach(zone=>{
+    const c=cityMap[zone];if(!c)return;
+    let offices=c.offices.slice();let sites=c.sites.slice();
+    if(kwLow){offices=offices.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));sites=sites.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));}
+    if(!offices.length&&!sites.length)return;
+    total+=offices.length+sites.length;
+    const mkRows=(entries,emptyMsg)=>entries.length?entries.map(e=>finderRow('ap',e.builder,e.addr,e.priority)).join(''):`<div style="font-size:11px;color:#aaa;padding:3px 0 5px;font-style:italic;">${emptyMsg}</div>`;
+    html+=`<div class="sf-zone-label">${esc(zone)}</div>`;
+    html+=`<div style="font-size:10px;font-weight:700;color:#2E6DA4;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 2px;">🏢 Offices</div>${mkRows(offices,'No office addresses')}`;
+    html+=`<div style="font-size:10px;font-weight:700;color:#0C447C;text-transform:uppercase;letter-spacing:.05em;margin:6px 0 2px;">📍 Sites</div>${mkRows(sites,'No site addresses')}`;
+    html+=`<div style="height:8px;"></div>`;
+  });
+  if(!total)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}". Try a different keyword.`:apMs.size?'No addresses found for selected cities.':'No addresses have been tagged with a city yet.'}</div>`;
+  document.getElementById('ap-content').innerHTML=html;
+  const cnt=document.getElementById('ap-count');
+  if(cnt)cnt.textContent=total?`${total} address${total!==1?'es':''} found`:'';
+  updateFinderRouteBar('ap');
+}
+function executAreaPrint(){
+  const kw=(document.getElementById('ap-keyword')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
+  const cityMap=_buildApCityMap();
+  const zones=apMs.size>0?[...apMs]:Object.keys(cityMap).sort();
+  const makeRows=(entries,label)=>{
+    if(!entries.length)return`<tr><td colspan="2" style="padding:5px 8px;color:#aaa;font-style:italic;font-size:11px;">No ${label} in this area</td></tr>`;
+    return entries.map(e=>{
+      const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';
+      return`<tr><td class="td-builder">${e.builder}${ps}</td><td class="td-addr">${e.addr}</td></tr><tr><td colspan="2" style="padding:2px 8px 16px;border-bottom:1px solid #ddd;"><span style="font-size:9px;color:#bbb;font-style:italic;">notes:</span><div style="border-bottom:1px dotted #ccc;margin-top:12px;"></div></td></tr>`;
+    }).join('');
+  };
+  let blocks='';let zoneCount=0;
+  zones.forEach(zone=>{
+    const c=cityMap[zone];if(!c)return;
+    let offices=c.offices.slice();let sites=c.sites.slice();
+    if(kwLow){offices=offices.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));sites=sites.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));}
+    if(!offices.length&&!sites.length)return;
+    zoneCount++;
+    c.offices=offices;c.sites=sites;
+    blocks+=`<div class="zone-page">
+      <div class="zone-header">🗺 ${zone}</div>
+      <div class="section-label">🏢 Office Addresses</div>
+      <table><thead><tr><th>Builder</th><th>Office Address</th></tr></thead><tbody>${makeRows(c.offices,'office addresses')}</tbody></table>
+      <div class="section-label" style="margin-top:18px;">📍 Site Addresses</div>
+      <table><thead><tr><th>Builder</th><th>Site Address</th></tr></thead><tbody>${makeRows(c.sites,'site addresses')}</tbody></table>
+    </div>`;
+  });
+  const subtitle=apMs.size>0?[...apMs].join(', '):'All cities';
+  const css=`
+    body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:12px;}
+    .no-print-header{padding:16px 20px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;}
+    .no-print-header h2{margin:0;font-size:15px;}.no-print-header p{margin:0;color:#666;font-size:11px;}
+    .no-print-header button{margin-left:auto;padding:6px 18px;font-size:13px;cursor:pointer;background:#5B4A8A;color:#fff;border:none;border-radius:4px;}
+    .zone-page{padding:20px 24px 16px;page-break-after:always;break-after:page;}
+    .zone-page:last-child{page-break-after:avoid;break-after:avoid;}
+    .zone-header{font-size:17px;font-weight:700;color:#5B4A8A;border-bottom:2px solid #5B4A8A;padding-bottom:6px;margin-bottom:12px;}
+    .section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#444;margin-bottom:5px;}
+    table{width:100%;border-collapse:collapse;margin-bottom:4px;}
+    th{text-align:left;padding:5px 8px;background:#f4f2fb;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #ccc;}
+    .td-builder{padding:5px 8px;font-weight:600;width:220px;border-bottom:1px solid #eee;vertical-align:top;}
+    .td-addr{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}
+    @media print{.no-print-header{display:none;}}
+  `;
+  const w=window.open('','_blank','width=860,height=750');
+  w.document.write(`<!DOCTYPE html><html><head><title>Area Print — ${subtitle}</title><style>${css}</style></head><body><div class="no-print-header"><div><h2>🗺 Area Print</h2><p>${subtitle} — ${zoneCount} area${zoneCount!==1?'s':''} — ${new Date().toLocaleDateString()}</p></div><button onclick="window.print()">🖨 Print All</button></div>${blocks||'<div style="padding:30px;color:#888;">No results to print.</div>'}</body></html>`);
+  w.document.close();
+}
+
+// ── Office Finder ──────────────────────────────────────────
+const ofMs=new Set();
+function openOfficeFinder(){
+  document.getElementById('office-finder-overlay').style.display='flex';
+  buildOfMsOpts();
+  renderOfficeFinder();
+}
+function closeOfficeFinder(){document.getElementById('office-finder-overlay').style.display='none';document.getElementById('of-ms-panel').style.display='none';clearFinderRoute('of');}
+function toggleOfMs(){const p=document.getElementById('of-ms-panel');p.style.display=p.style.display==='none'?'block':'none';}
+function buildOfMsOpts(filter=''){
+  const fl=filter.toLowerCase();
+  document.getElementById('of-ms-opts').innerHTML=ZONE_OPTIONS.filter(z=>z&&(!fl||z.toLowerCase().includes(fl))).map(z=>`<label class="ms-opt"><input type="checkbox" ${ofMs.has(z)?'checked':''} onchange="toggleOfCity('${z.replace(/'/g,"\\'")}',this.checked)"> ${esc(z)}</label>`).join('');
+}
+function filterOfMsOpts(val){buildOfMsOpts(val);}
+function toggleOfCity(city,checked){if(checked)ofMs.add(city);else ofMs.delete(city);updateOfMsBtn();renderOfficeFinder();}
+function updateOfMsBtn(){const btn=document.getElementById('of-ms-btn');btn.textContent=ofMs.size===0?'All cities ▾':ofMs.size===1?[...ofMs][0]+' ▾':`${ofMs.size} cities ▾`;}
+function clearOfMs(){ofMs.clear();buildOfMsOpts();updateOfMsBtn();renderOfficeFinder();}
+document.addEventListener('click',e=>{const w=document.getElementById('of-ms-wrap');if(w&&!w.contains(e.target)){const p=document.getElementById('of-ms-panel');if(p)p.style.display='none';}});
+function _buildOfZoneMap(){
+  const PORD_OF={now:0,high:1,med:2,low:3,new:4};
+  const zoneMap={};
+  builders.forEach(b=>{
+    if(!b.address||!b.address.trim()||!b.zone)return;
+    if(!zoneMap[b.zone])zoneMap[b.zone]=[];
+    zoneMap[b.zone].push({builder:b.name,addr:b.address.trim(),priority:getLog(b.p).priority||''});
+  });
+  Object.values(zoneMap).forEach(arr=>arr.sort((a,b2)=>(PORD_OF[a.priority]??99)-(PORD_OF[b2.priority]??99)));
+  return zoneMap;
+}
+function renderOfficeFinder(){
+  const selectedZones=ofMs.size>0?[...ofMs]:null;
+  const kw=(document.getElementById('of-keyword')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
+  const zoneMap=_buildOfZoneMap();
+  const zones=selectedZones||Object.keys(zoneMap).sort();
+  let html='';let totalEntries=0;
+  zones.forEach(zone=>{
+    let entries=(zoneMap[zone]||[]).slice();
+    if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
+    if(!entries.length)return;
+    totalEntries+=entries.length;
+    html+=`<div class="sf-zone-label">${esc(zone)} (${entries.length} office${entries.length!==1?'s':''})</div>`;
+    entries.forEach(e=>{html+=finderRow('of',e.builder,e.addr,e.priority);});
+  });
+  if(!totalEntries)html=`<div class="sf-no-results">${kwLow?`No results matching "${esc(kw)}"${ofMs.size?' in selected cities':''}. Try a different keyword.`:ofMs.size?'No office addresses found for selected cities.':'No builders have an office city (quadrant) assigned yet.'}</div>`;
+  document.getElementById('of-content').innerHTML=html;
+  updateFinderRouteBar('of');
+  const cnt=document.getElementById('of-count');
+  if(cnt)cnt.textContent=totalEntries?`${totalEntries} office${totalEntries!==1?'s':''} found`:'';
+}
+function printOfficeFinder(){
+  const kw=(document.getElementById('of-keyword')||{}).value||'';
+  const kwLow=kw.trim().toLowerCase();
+  const zoneMap=_buildOfZoneMap();
+  const selectedZonesPrint=ofMs.size>0?[...ofMs]:null;
+  const zones=selectedZonesPrint||Object.keys(zoneMap).sort();
+  let blocks='';let zoneCount=0;
+  zones.forEach(zone=>{
+    let entries=(zoneMap[zone]||[]).slice();
+    if(kwLow)entries=entries.filter(e=>e.addr.toLowerCase().includes(kwLow)||e.builder.toLowerCase().includes(kwLow));
+    if(!entries.length)return;
+    zoneCount++;
+    const rows=entries.map(e=>{
+      const ps=e.priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[e.priority]||''}">${e.priority.toUpperCase()}</span>`:'';
+      return`<tr><td class="td-builder">${e.builder}${ps}</td><td class="td-addr">${e.addr}</td></tr><tr class="notes-gap"><td colspan="2" style="padding:2px 8px 18px;border-bottom:1px solid #ddd;"><span style="font-size:9px;color:#bbb;font-style:italic;">notes:</span><div style="border-bottom:1px dotted #ccc;margin-top:14px;"></div></td></tr>`;
+    }).join('');
+    blocks+=`<div class="zone-page"><div class="zone-header">🏢 ${zone} <span class="zone-count">${entries.length} office${entries.length!==1?'s':''}</span></div><table><thead><tr><th>Builder</th><th>Office Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  const subtitle=[ofMs.size>0?[...ofMs].join(', '):'All cities',kwLow?`Keyword: "${kw}"`:''].filter(Boolean).join(' · ');
+  const css=`
+    body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:12px;}
+    .no-print-header{padding:16px 20px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;}
+    .no-print-header h2{margin:0;font-size:15px;}
+    .no-print-header p{margin:0;color:#666;font-size:11px;}
+    .no-print-header button{margin-left:auto;padding:6px 18px;font-size:13px;cursor:pointer;background:#1a5c3a;color:#fff;border:none;border-radius:4px;}
+    .zone-page{padding:20px 24px 16px;page-break-after:always;break-after:page;}
+    .zone-page:last-child{page-break-after:avoid;break-after:avoid;}
+    .zone-header{font-size:16px;font-weight:700;color:#1a5c3a;border-bottom:2px solid #1a5c3a;padding-bottom:6px;margin-bottom:10px;}
+    .zone-count{font-size:12px;font-weight:400;color:#666;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:5px 8px;background:#f0f8f4;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #ccc;}
+    .td-builder{padding:5px 8px;font-weight:600;width:220px;border-bottom:1px solid #eee;vertical-align:top;}
+    .td-addr{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}
+    @media print{.no-print-header{display:none;}}
+  `;
+  const w=window.open('','_blank','width=860,height=750');
+  w.document.write(`<!DOCTYPE html><html><head><title>Office Finder — ${subtitle||'All'}</title><style>${css}</style></head><body><div class="no-print-header"><div><h2>🏢 Office Finder</h2><p>${subtitle||'All cities'} — ${zoneCount} area${zoneCount!==1?'s':''} — ${new Date().toLocaleDateString()}</p></div><button onclick="window.print()">🖨 Print All</button></div>${blocks||'<div style="padding:30px;color:#888;">No results to print.</div>'}</body></html>`);
+  w.document.close();
+}
+
 function fmtLastActivity(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'—';}
 }
 function autosizeAll(){document.querySelectorAll('textarea.ei').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
@@ -1097,7 +1283,6 @@ function render(){
     const statOpts=STATUS_OPTS.map(o=>`<option value="${o.val}"${log.status===o.val?' selected':''}>${o.label}</option>`).join('');
     const repOpts=`<option value="">— Unassigned —</option>`+reps.map((r,ri)=>`<option value="${r}"${log.rep===r?' selected':''}>${r}</option>`).join('');
     return`<tr>
-      <td style="text-align:center;padding:4px;vertical-align:middle;"><input type="checkbox" class="route-chk" data-id="${b.p}" onchange="updateRouteBar()" style="cursor:pointer;accent-color:#1a3a6b;width:15px;height:15px;"/></td>
       <td class="col-freeze-1">
         <input class="ei" value="${esc(b.name)}" placeholder="Builder name" onblur="setBuilderInfo(${b.p},'name',this.value)" style="font-weight:600;font-size:12px;"/>
         <select class="fsel" onchange="setBuilderInfo(${b.p},'type',this.value)" style="margin-top:3px;font-size:11px;">
@@ -1382,8 +1567,7 @@ const PRINT_COLS=[
 ];
 // Presets: array of column h values to check
 const PRINT_PRESETS={
-  route:   ['Builder','Priority','Office Quadrant','Site Addresses','Contacts','Next Steps'],
-  outreach:['Builder','Type','Priority','Status','Assigned Rep','Email Outreach','LinkedIn Outreach','Phone Calls','General Notes'],
+outreach:['Builder','Type','Priority','Status','Assigned Rep','Email Outreach','LinkedIn Outreach','Phone Calls','General Notes'],
   contacts:['Builder','Type','Office Quadrant','Office / General Contacts','Contacts','Site Addresses'],
   full:    PRINT_COLS.map(c=>c.h),
 };
@@ -1494,99 +1678,149 @@ function executePrint(){
   win.document.close();
 }
 
-// ── Route selection ───────────────────────────────────────────
-function getSelectedBuilderIds(){
-  return [...document.querySelectorAll('.route-chk:checked')].map(cb=>parseInt(cb.dataset.id));
+// ── Shared Maps launcher ──────────────────────────────────────
+function launchMapsFromAddrs(addrs){
+  if(!addrs.length){alert('No addresses selected.');return;}
+  const parts=addrs.slice(0,10).map(a=>encodeURIComponent(a));
+  window.open('https://www.google.com/maps/dir/'+parts.join('/'),'_blank');
 }
-function updateRouteBar(){
-  const ids=getSelectedBuilderIds();
-  const bar=document.getElementById('route-bar');
-  const chkAll=document.getElementById('chk-all');
-  if(ids.length>0){
-    bar.classList.add('visible');
-    document.getElementById('route-bar-count').textContent=`${ids.length} builder${ids.length!==1?'s':''} selected for route`;
-  } else {
-    bar.classList.remove('visible');
+
+// ── Finder route selection (shared across sf/of/ap) ───────────
+const finderRoutes={sf:[],of:[],ap:[]};
+
+function toggleFinderEntry(prefix,addr,label,checked){
+  const r=finderRoutes[prefix];
+  if(checked){if(!r.find(x=>x.addr===addr))r.push({addr,label});}
+  else{const i=r.findIndex(x=>x.addr===addr);if(i>=0)r.splice(i,1);}
+  updateFinderRouteBar(prefix);
+}
+function updateFinderRouteBar(prefix){
+  const r=finderRoutes[prefix];
+  const bar=document.getElementById(`${prefix}-route-bar`);
+  const cnt=document.getElementById(`${prefix}-route-count`);
+  if(!bar)return;
+  if(r.length>0){bar.style.display='flex';cnt.textContent=`${r.length} stop${r.length!==1?'s':''} selected`;}
+  else{bar.style.display='none';}
+}
+function clearFinderRoute(prefix){
+  finderRoutes[prefix]=[];
+  document.querySelectorAll(`.finder-chk-${prefix}`).forEach(cb=>cb.checked=false);
+  updateFinderRouteBar(prefix);
+}
+async function launchFinderMaps(prefix){
+  const stops=finderRoutes[prefix].slice(0,10);
+  if(!stops.length){alert('No stops selected.');return;}
+  const btn=document.querySelector(`#${prefix}-route-bar button[onclick*="launchFinderMaps"]`);
+  const orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Optimizing…';btn.disabled=true;}
+  try{
+    // Geocode each address via Nominatim (1 req/sec to respect rate limit)
+    const coords=[];
+    for(const s of stops){
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(s.addr)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}});
+        const data=await res.json();
+        if(data&&data[0])coords.push({...s,lat:parseFloat(data[0].lat),lng:parseFloat(data[0].lon)});
+        else coords.push({...s,lat:null,lng:null});
+      }catch(e){coords.push({...s,lat:null,lng:null});}
+      await new Promise(r=>setTimeout(r,250));
+    }
+    // Nearest-neighbor TSP on geocoded stops; ungeocoded go to end
+    const geocoded=coords.filter(c=>c.lat!==null);
+    const failed=coords.filter(c=>c.lat===null);
+    const dist=(a,b)=>Math.hypot(a.lat-b.lat,a.lng-b.lng);
+    const ordered=[];
+    const remaining=[...geocoded];
+    if(remaining.length){
+      ordered.push(remaining.splice(0,1)[0]);
+      while(remaining.length){
+        const last=ordered[ordered.length-1];
+        let best=0,bestD=Infinity;
+        remaining.forEach((r,i)=>{const d=dist(last,r);if(d<bestD){bestD=d;best=i;}});
+        ordered.push(remaining.splice(best,1)[0]);
+      }
+    }
+    const finalOrder=[...ordered,...failed];
+    launchMapsFromAddrs(finalOrder.map(s=>s.addr));
+  }finally{
+    if(btn){btn.textContent=orig;btn.disabled=false;}
   }
-  // update select-all state
-  const total=document.querySelectorAll('.route-chk').length;
-  if(chkAll){chkAll.checked=ids.length===total&&total>0;chkAll.indeterminate=ids.length>0&&ids.length<total;}
 }
-function toggleSelectAll(on){
-  document.querySelectorAll('.route-chk').forEach(cb=>cb.checked=on);
-  updateRouteBar();
+async function printFinderRoute(prefix,title){
+  const rawStops=finderRoutes[prefix];
+  if(!rawStops.length){alert('No stops selected to print.');return;}
+  const btn=document.querySelector(`#${prefix}-route-bar button[onclick*="printFinderRoute"]`);
+  const orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Optimizing…';btn.disabled=true;}
+  let stops=rawStops;
+  try{
+    const coords=[];
+    for(const s of rawStops){
+      try{
+        const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(s.addr)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}});
+        const data=await res.json();
+        if(data&&data[0])coords.push({...s,lat:parseFloat(data[0].lat),lng:parseFloat(data[0].lon)});
+        else coords.push({...s,lat:null,lng:null});
+      }catch(e){coords.push({...s,lat:null,lng:null});}
+      await new Promise(r=>setTimeout(r,250));
+    }
+    const dist=(a,b)=>Math.hypot(a.lat-b.lat,a.lng-b.lng);
+    const geocoded=coords.filter(c=>c.lat!==null);
+    const failed=coords.filter(c=>c.lat===null);
+    const ordered=[];const remaining=[...geocoded];
+    if(remaining.length){
+      ordered.push(remaining.splice(0,1)[0]);
+      while(remaining.length){
+        const last=ordered[ordered.length-1];
+        let best=0,bestD=Infinity;
+        remaining.forEach((r,i)=>{const d=dist(last,r);if(d<bestD){bestD=d;best=i;}});
+        ordered.push(remaining.splice(best,1)[0]);
+      }
+    }
+    stops=[...ordered,...failed];
+  }catch(e){}finally{if(btn){btn.textContent=orig;btn.disabled=false;}}
+  const rows=stops.map((s,i)=>`<tr>
+    <td style="padding:5px 8px;font-weight:700;color:#1a3a6b;width:28px;">${i+1}.</td>
+    <td style="padding:5px 8px;font-weight:600;">${s.label}</td>
+    <td style="padding:5px 8px;color:#444;">${s.addr}</td>
+  </tr><tr><td colspan="3" style="padding:2px 8px 16px;border-bottom:1px solid #ddd;">
+    <span style="font-size:9px;color:#bbb;font-style:italic;">notes:</span>
+    <div style="border-bottom:1px dotted #ccc;margin-top:12px;"></div>
+  </td></tr>`).join('');
+  const warn=stops.length>10?`<p style="color:#a32d2d;font-size:11px;background:#fff5f5;padding:6px 10px;border-radius:4px;">⚠ ${stops.length} stops selected — Google Maps only shows the first 10 on the map.</p>`:'';
+  const w=window.open('','_blank','width=780,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><title>${title} Route</title><style>
+    body{font-family:Arial,sans-serif;margin:0;padding:0;font-size:12px;}
+    .hdr{padding:16px 20px 8px;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:12px;}
+    .hdr h2{margin:0;font-size:15px;}.hdr p{margin:0;color:#666;font-size:11px;}
+    .hdr button{margin-left:auto;padding:6px 18px;font-size:13px;cursor:pointer;background:#1a3a6b;color:#fff;border:none;border-radius:4px;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:5px 8px;background:#f0f4f8;font-size:11px;font-weight:700;text-transform:uppercase;border-bottom:2px solid #ccc;}
+    @media print{.hdr button{display:none;}}
+  </style></head><body>
+  <div class="hdr"><div><h2>🗺 ${title} — Route Sheet</h2><p>${stops.length} stop${stops.length!==1?'s':''} — ${new Date().toLocaleDateString()}</p></div><button onclick="window.print()">🖨 Print</button></div>
+  ${warn}
+  <table style="margin:16px 20px;width:calc(100% - 40px);">
+    <thead><tr><th>#</th><th>Builder</th><th>Address</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </body></html>`);
+  w.document.close();
 }
-function clearRouteSelection(){
-  document.querySelectorAll('.route-chk').forEach(cb=>cb.checked=false);
-  const chkAll=document.getElementById('chk-all');if(chkAll)chkAll.checked=false;
-  updateRouteBar();
-}
-function getRouteStops(){
-  const useOffice=document.getElementById('route-use-office').checked;
-  const useSites=document.getElementById('route-use-sites').checked;
-  const ids=getSelectedBuilderIds();
-  const stops=[];
-  ids.forEach(id=>{
-    const b=getB(id);if(!b)return;
-    if(useOffice&&b.address&&b.address.trim())stops.push({label:b.name+' (office)',addr:b.address.trim()});
-    if(useSites)(b.siteAddresses||[]).forEach(sa=>{
-      const a=typeof sa==='string'?{addr:sa,zone:''}:sa;
-      if(a.addr&&a.addr.trim())stops.push({label:b.name+' site'+(a.zone?` [${a.zone}]`:''),addr:a.addr.trim()});
-    });
-  });
-  return stops;
-}
-function openRouteModal(){
-  document.getElementById('route-modal-overlay').style.display='flex';
-  refreshRoutePreview();
-  document.getElementById('route-use-office').onchange=refreshRoutePreview;
-  document.getElementById('route-use-sites').onchange=refreshRoutePreview;
-}
-function closeRouteModal(){document.getElementById('route-modal-overlay').style.display='none';}
-function refreshRoutePreview(){
-  const stops=getRouteStops();
-  const warn=document.getElementById('route-cap-warn');
-  warn.style.display=stops.length>10?'block':'none';
-  const preview=document.getElementById('route-stop-preview');
-  if(!stops.length){preview.innerHTML='<span style="color:#aaa;">No addresses found for selected builders.</span>';return;}
-  preview.innerHTML=stops.map((s,i)=>`<div style="padding:4px 0;border-bottom:1px solid #e8eaf0;display:flex;gap:8px;align-items:baseline;${i>=10?'opacity:.4;':''}"><span style="font-size:10px;font-weight:700;color:#1a3a6b;min-width:18px;">${i+1}.</span><div><div style="font-weight:600;color:#333;">${esc(s.label)}</div><div style="color:#666;font-size:11px;">${esc(s.addr)}</div></div></div>`).join('');
-}
-function launchMaps(){
-  const stops=getRouteStops().slice(0,10);
-  if(!stops.length){alert('No addresses to route.');return;}
-  // Google Maps directions URL: /maps/dir/addr1/addr2/.../addrN
-  const parts=stops.map(s=>encodeURIComponent(s.addr));
-  const url='https://www.google.com/maps/dir/'+parts.join('/');
-  window.open(url,'_blank');
-  closeRouteModal();
+
+// Render a clickable sf-row with checkbox
+function finderRow(prefix,builder,addr,priority){
+  const ps=priority?`<span style="font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px;${PRIORITY_STYLE[priority]||''}">${priority.toUpperCase()}</span>`:'';
+  const safeAddr=addr.replace(/"/g,'&quot;');
+  const safeLabel=(builder+' — '+addr).replace(/"/g,'&quot;');
+  const checked=finderRoutes[prefix].find(x=>x.addr===addr)?'checked':'';
+  return`<div class="sf-row" style="cursor:pointer;" onclick="const cb=this.querySelector('.finder-chk-${prefix}');cb.checked=!cb.checked;toggleFinderEntry('${prefix}','${safeAddr}','${safeLabel}',cb.checked)">
+    <input type="checkbox" class="finder-chk-${prefix}" ${checked} style="margin-right:6px;accent-color:#1a3a6b;flex-shrink:0;" onclick="event.stopPropagation();toggleFinderEntry('${prefix}','${safeAddr}','${safeLabel}',this.checked)">
+    <div class="sf-builder">${esc(builder)}${ps}</div>
+    <div class="sf-addr">${esc(addr)}</div>
+  </div>`;
 }
 </script>
-
-<!-- Floating route bar -->
-<div id="route-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1500;background:#1a3a6b;color:#fff;padding:10px 20px;display:none;align-items:center;gap:12px;box-shadow:0 -3px 16px rgba(0,0,0,.25);">
-  <span id="route-bar-count" style="font-size:13px;font-weight:600;flex:1;"></span>
-  <button onclick="clearRouteSelection()" style="font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;">✕ Clear</button>
-  <button onclick="openRouteModal()" style="font-size:13px;font-weight:700;padding:7px 18px;border-radius:7px;border:none;background:#fff;color:#1a3a6b;cursor:pointer;">🗺 Route in Google Maps</button>
-</div>
-
-<!-- Route address picker modal -->
-<div id="route-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2500;align-items:center;justify-content:center;" onclick="if(event.target===this)closeRouteModal()">
-  <div style="background:#fff;border-radius:12px;padding:26px 28px;width:min(540px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.22);">
-    <h3 style="margin:0 0 6px;font-size:16px;color:#1a3a6b;">🗺 Build your route</h3>
-    <p style="margin:0 0 16px;font-size:12px;color:#888;">Choose which addresses to include for each selected builder. Google Maps will open with all stops — use its <strong>Optimize route</strong> button for the shortest path.</p>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Include addresses:</div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer;"><input type="checkbox" id="route-use-office" checked style="accent-color:#1a3a6b;width:15px;height:15px;"> Office addresses</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="route-use-sites" checked style="accent-color:#1a3a6b;width:15px;height:15px;"> Site addresses</label>
-    </div>
-    <div id="route-stop-preview" style="background:#f5f7fb;border-radius:8px;padding:12px;font-size:12px;max-height:220px;overflow-y:auto;margin-bottom:16px;"></div>
-    <div id="route-cap-warn" style="display:none;font-size:11px;color:#A32D2D;background:#FFF5F5;border-radius:6px;padding:7px 10px;margin-bottom:12px;">⚠ Google Maps supports up to 10 waypoints. Only the first 10 stops will be sent — consider narrowing your selection.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="closeRouteModal()" style="font-size:12px;padding:7px 16px;border-radius:7px;border:1px solid #ddd;background:#f5f5f3;cursor:pointer;">Cancel</button>
-      <button onclick="launchMaps()" style="font-size:13px;font-weight:700;padding:7px 20px;border-radius:7px;border:none;background:#1a3a6b;color:#fff;cursor:pointer;">Open in Maps →</button>
-    </div>
-  </div>
-</div>
 
 <!-- Site Finder Modal -->
 <div id="site-finder-overlay" onclick="if(event.target===this)closeSiteFinder()">
@@ -1611,6 +1845,76 @@ function launchMaps(){
       <span id="sf-count" style="font-size:11px;color:#888;white-space:nowrap;"></span>
     </div>
     <div id="sf-content"></div>
+    <div id="sf-route-bar" style="display:none;position:sticky;bottom:0;background:#1a3a6b;color:#fff;padding:8px 14px;border-radius:0 0 10px 10px;display:none;align-items:center;gap:10px;margin-top:8px;">
+      <span id="sf-route-count" style="font-size:12px;font-weight:600;flex:1;"></span>
+      <button onclick="clearFinderRoute('sf')" style="font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;">✕ Clear</button>
+      <button onclick="launchFinderMaps('sf')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#fff;color:#1a3a6b;cursor:pointer;">🗺 Open in Maps</button>
+      <button onclick="printFinderRoute('sf','Site Finder')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#4CAF50;color:#fff;cursor:pointer;">🖨 Print Route</button>
+    </div>
+  </div>
+</div>
+
+<!-- Area Print Modal -->
+<div id="area-print-overlay" onclick="if(event.target===this)closeAreaPrint()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100;align-items:center;justify-content:center;">
+  <div id="area-print-modal" style="background:#fff;border-radius:12px;padding:24px;width:700px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="margin:0;font-size:16px;color:#5B4A8A;">🗺 Area Print — offices &amp; sites</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="font-size:12px;padding:5px 12px;" onclick="executAreaPrint()">🖨 Print</button>
+        <button class="btn" onclick="closeAreaPrint()">Close</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+      <div class="ms-wrap" style="min-width:200px;" id="ap-ms-wrap">
+        <button class="ms-btn" id="ap-ms-btn" onclick="toggleApMs()" type="button">All cities ▾</button>
+        <div class="ms-panel" id="ap-ms-panel" style="display:none;min-width:220px;">
+          <input class="ms-search" placeholder="Search cities…" oninput="filterApMsOpts(this.value)" style="font-size:12px;padding:4px 7px;border:1px solid #ccc;border-radius:4px;width:calc(100% - 14px);margin-bottom:4px;font-family:inherit;"/>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px;"><button onclick="clearApMs()" style="font-size:10px;padding:1px 6px;cursor:pointer;border:1px solid #ccc;border-radius:3px;background:#fff;">Clear</button></div>
+          <div id="ap-ms-opts" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <input id="ap-keyword" placeholder="Filter by address / builder…" oninput="renderAreaPreview()" style="font-size:12px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:180px;font-family:inherit;"/>
+      <span id="ap-count" style="font-size:11px;color:#888;white-space:nowrap;"></span>
+    </div>
+    <div id="ap-content"></div>
+    <div id="ap-route-bar" style="display:none;position:sticky;bottom:0;background:#1a3a6b;color:#fff;padding:8px 14px;border-radius:0 0 10px 10px;align-items:center;gap:10px;margin-top:8px;">
+      <span id="ap-route-count" style="font-size:12px;font-weight:600;flex:1;"></span>
+      <button onclick="clearFinderRoute('ap')" style="font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;">✕ Clear</button>
+      <button onclick="launchFinderMaps('ap')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#fff;color:#1a3a6b;cursor:pointer;">🗺 Open in Maps</button>
+      <button onclick="printFinderRoute('ap','Area Print')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#4CAF50;color:#fff;cursor:pointer;">🖨 Print Route</button>
+    </div>
+  </div>
+</div>
+
+<!-- Office Finder Modal -->
+<div id="office-finder-overlay" onclick="if(event.target===this)closeOfficeFinder()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1100;align-items:center;justify-content:center;">
+  <div id="office-finder-modal" style="background:#fff;border-radius:12px;padding:24px;width:680px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="margin:0;font-size:16px;color:#1a5c3a;">🏢 Office Finder — drop-by planner</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="font-size:12px;padding:5px 12px;" onclick="printOfficeFinder()">🖨 Print</button>
+        <button class="btn" onclick="closeOfficeFinder()">Close</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+      <div class="ms-wrap" style="min-width:200px;" id="of-ms-wrap">
+        <button class="ms-btn" id="of-ms-btn" onclick="toggleOfMs()" type="button">All cities ▾</button>
+        <div class="ms-panel" id="of-ms-panel" style="display:none;min-width:220px;">
+          <input class="ms-search" placeholder="Search cities…" oninput="filterOfMsOpts(this.value)" style="font-size:12px;padding:4px 7px;border:1px solid #ccc;border-radius:4px;width:calc(100% - 14px);margin-bottom:4px;font-family:inherit;"/>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px;"><button onclick="clearOfMs()" style="font-size:10px;padding:1px 6px;cursor:pointer;border:1px solid #ccc;border-radius:3px;background:#fff;">Clear</button></div>
+          <div id="of-ms-opts" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <input id="of-keyword" placeholder="Filter by address / builder…" oninput="renderOfficeFinder()" style="font-size:12px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:180px;font-family:inherit;"/>
+      <span id="of-count" style="font-size:11px;color:#888;white-space:nowrap;"></span>
+    </div>
+    <div id="of-content"></div>
+    <div id="of-route-bar" style="display:none;position:sticky;bottom:0;background:#1a3a6b;color:#fff;padding:8px 14px;border-radius:0 0 10px 10px;align-items:center;gap:10px;margin-top:8px;">
+      <span id="of-route-count" style="font-size:12px;font-weight:600;flex:1;"></span>
+      <button onclick="clearFinderRoute('of')" style="font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;">✕ Clear</button>
+      <button onclick="launchFinderMaps('of')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#fff;color:#1a3a6b;cursor:pointer;">🗺 Open in Maps</button>
+      <button onclick="printFinderRoute('of','Office Finder')" style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:5px;border:none;background:#4CAF50;color:#fff;cursor:pointer;">🖨 Print Route</button>
+    </div>
   </div>
 </div>
 
