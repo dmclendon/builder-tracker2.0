@@ -1635,6 +1635,7 @@ function applyPrintPreset(key){
     if(c){cb.checked=set.has(c.h);printColChecked[c.h]=cb.checked;}
   });
 }
+function getSelectedBuilderIds(){return[];}
 function executePrint(){
   const checkedIndices=new Set([...document.querySelectorAll('#print-col-grid input:checked')].map(cb=>parseInt(cb.dataset.colIndex)));
   closePrintDialog();
